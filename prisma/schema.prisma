@@ -47,6 +47,7 @@ model Customer {
   metrics           Metric[]
   goals             Goal[]
   sessions          Session[]
+  reports           Report[]
 }
 
 model Metric {
