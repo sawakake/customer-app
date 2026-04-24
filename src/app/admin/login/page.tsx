@@ -86,7 +86,7 @@ export default function LoginPage() {
         </form>
 
         <div className={styles.footer}>
-          <p>© 2026 Gym CRM Management System</p>
+          <p>© 2026 BodyCareGymCONNECT Management System</p>
         </div>
       </div>
     </div>

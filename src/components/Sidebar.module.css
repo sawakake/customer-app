@@ -31,11 +31,11 @@
 }
 
 .logoText {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--primary);
   letter-spacing: 0.02em;
-  text-transform: uppercase;
+  margin-top: 0.25rem;
 }
 
 .nav {

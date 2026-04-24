@@ -19,9 +19,17 @@
 }
 
 .header h1 {
-  font-size: 1.8rem;
+  font-size: 2rem;
   color: var(--primary);
   margin-bottom: 0.5rem;
+  font-weight: 900;
+}
+
+.registerLogo {
+  max-width: 180px;
+  height: auto;
+  margin: 0 auto 1.5rem;
+  display: block;
 }
 
 .header p {

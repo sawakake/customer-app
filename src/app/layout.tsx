@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Premium Gym CRM",
+  title: "Premium BodyCareGymCONNECT",
   description: "Next-generation personal trainer CRM system",
 };
 

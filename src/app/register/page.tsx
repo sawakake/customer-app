@@ -126,7 +126,8 @@ export default function RegisterPage() {
     <div className={styles.wrapper}>
       <div className={`card ${styles.container}`}>
         <div className={styles.header}>
-          <h1>お客様情報のご登録</h1>
+          <img src="/images/logo.png" alt="BodyCareGymCONNECT" className={styles.registerLogo} />
+          <h1>BodyCareGymCONNECT</h1>
           <p>以下のフォームに必要事項をご記入の上、送信をお願いいたします。</p>
         </div>
 

@@ -12,7 +12,7 @@ export default function TrainerHeader() {
       <div className={styles.container}>
         <div className={styles.logo}>
           <Activity className={styles.logoIcon} />
-          <span>Gym CRM</span>
+          <span>BodyCareGymCONNECT</span>
         </div>
         <nav className={styles.nav}>
           <Link href="/dashboard" className={`${styles.navLink} ${pathname.includes("/dashboard") || pathname === "/" ? styles.active : ""}`}>
