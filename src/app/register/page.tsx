@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./page.module.css";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Search } from "lucide-react";
 
 export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -10,21 +10,53 @@ export default function RegisterPage() {
   const [agreed, setAgreed] = useState(false);
   
   const [formData, setFormData] = useState({
-    name: "",
-    furigana: "",
+    lastName: "",
+    firstName: "",
+    lastNameFurigana: "",
+    firstNameFurigana: "",
     gender: "女性",
-    dob: "",
-    postalCode: "",
+    dobYear: "1990",
+    dobMonth: "1",
+    dobDay: "1",
+    postalCode1: "",
+    postalCode2: "",
     address: "",
-    phone: "",
-    emergencyPhone: "",
-    emergencyName: "",
+    phone1: "",
+    phone2: "",
+    phone3: "",
+    emergencyPhone1: "",
+    emergencyPhone2: "",
+    emergencyPhone3: "",
+    emergencyLastName: "",
+    emergencyFirstName: "",
     emergencyRelation: "",
     plan: "2ヶ月集中プラン",
     complaint: "",
     idealState: "",
     desiredServices: "",
   });
+
+  // 郵便番号から住所を自動検索
+  useEffect(() => {
+    const fetchAddress = async () => {
+      if (formData.postalCode1.length === 3 && formData.postalCode2.length === 4) {
+        try {
+          const res = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${formData.postalCode1}${formData.postalCode2}`);
+          const data = await res.json();
+          if (data.results) {
+            const result = data.results[0];
+            setFormData(prev => ({
+              ...prev,
+              address: `${result.address1}${result.address2}${result.address3}`
+            }));
+          }
+        } catch (error) {
+          console.error("Address search failed:", error);
+        }
+      }
+    };
+    fetchAddress();
+  }, [formData.postalCode1, formData.postalCode2]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -35,11 +67,29 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
+    // データを送信形式（結合済み）に変換
+    const submissionData = {
+      name: `${formData.lastName} ${formData.firstName}`,
+      furigana: `${formData.lastNameFurigana} ${formData.firstNameFurigana}`,
+      gender: formData.gender,
+      dob: `${formData.dobYear}-${formData.dobMonth.padStart(2, '0')}-${formData.dobDay.padStart(2, '0')}`,
+      postalCode: `${formData.postalCode1}-${formData.postalCode2}`,
+      address: formData.address,
+      phone: `${formData.phone1}${formData.phone2}${formData.phone3}`,
+      emergencyPhone: `${formData.emergencyPhone1}${formData.emergencyPhone2}${formData.emergencyPhone3}`,
+      emergencyName: `${formData.emergencyLastName} ${formData.emergencyFirstName}`,
+      emergencyRelation: formData.emergencyRelation,
+      plan: formData.plan,
+      complaint: formData.complaint,
+      idealState: formData.idealState,
+      desiredServices: formData.desiredServices,
+    };
+    
     try {
       const res = await fetch("/api/customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       });
       
       if (res.ok) {
@@ -53,6 +103,12 @@ export default function RegisterPage() {
       setIsSubmitting(false);
     }
   };
+
+  // 年・月・日の選択肢生成
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   if (isSuccess) {
     return (
@@ -77,14 +133,19 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit}>
           <h3 className={styles.sectionTitle}>基本情報</h3>
           
-          <div className={styles.row}>
-            <div className="form-group">
-              <label>氏名（フルネームでお書きください） *</label>
-              <input required type="text" name="name" className="input" value={formData.name} onChange={handleChange} placeholder="例）山田 太郎" />
+          <div className="form-group">
+            <label>氏名 *</label>
+            <div className={styles.nameRow}>
+              <input required type="text" name="lastName" className="input" value={formData.lastName} onChange={handleChange} placeholder="苗字" />
+              <input required type="text" name="firstName" className="input" value={formData.firstName} onChange={handleChange} placeholder="名前" />
             </div>
-            <div className="form-group">
-              <label>ふりがな *</label>
-              <input required type="text" name="furigana" className="input" value={formData.furigana} onChange={handleChange} placeholder="例）やまだ たろう" />
+          </div>
+
+          <div className="form-group">
+            <label>ふりがな *</label>
+            <div className={styles.nameRow}>
+              <input required type="text" name="lastNameFurigana" className="input" value={formData.lastNameFurigana} onChange={handleChange} placeholder="みょうじ" />
+              <input required type="text" name="firstNameFurigana" className="input" value={formData.firstNameFurigana} onChange={handleChange} placeholder="なまえ" />
             </div>
           </div>
 
@@ -104,43 +165,70 @@ export default function RegisterPage() {
             </div>
             <div className="form-group">
               <label>生年月日 *</label>
-              <input required type="date" name="dob" className="input" value={formData.dob} onChange={handleChange} />
+              <div className={styles.dobGroup}>
+                <select name="dobYear" className="input" value={formData.dobYear} onChange={handleChange}>
+                  {years.map(y => <option key={y} value={y}>{y}年</option>)}
+                </select>
+                <select name="dobMonth" className="input" value={formData.dobMonth} onChange={handleChange}>
+                  {months.map(m => <option key={m} value={m}>{m}月</option>)}
+                </select>
+                <select name="dobDay" className="input" value={formData.dobDay} onChange={handleChange}>
+                  {days.map(d => <option key={d} value={d}>{d}日</option>)}
+                </select>
+              </div>
             </div>
           </div>
 
           <div className="form-group">
             <label>お住まい（郵便番号）</label>
-            <input type="text" name="postalCode" className="input" value={formData.postalCode} onChange={handleChange} placeholder="例）100-0001" />
+            <div className={styles.postalGroup}>
+              <input type="text" name="postalCode1" className="input" maxLength={3} value={formData.postalCode1} onChange={handleChange} placeholder="000" />
+              <span>-</span>
+              <input type="text" name="postalCode2" className="input" maxLength={4} value={formData.postalCode2} onChange={handleChange} placeholder="0000" />
+              <span className={styles.postHint}><Search size={14}/> 入力すると住所が自動入力されます</span>
+            </div>
           </div>
 
           <div className="form-group">
             <label>住所</label>
-            <input type="text" name="address" className="input" value={formData.address} onChange={handleChange} placeholder="例）東京都千代田区1-1-1..." />
+            <input required type="text" name="address" className="input" value={formData.address} onChange={handleChange} placeholder="例）東京都千代田区1-1-1..." />
           </div>
 
           <div className="form-group">
-            <label>連絡先（電話番号ハイフンなしで記入ください） *</label>
-            <input required type="tel" name="phone" className="input" value={formData.phone} onChange={handleChange} placeholder="例）09012345678" pattern="[0-9]*" />
+            <label>連絡先（電話番号） *</label>
+            <div className={styles.phoneGroup}>
+              <input required type="tel" name="phone1" className="input" maxLength={4} value={formData.phone1} onChange={handleChange} placeholder="090" />
+              <span>-</span>
+              <input required type="tel" name="phone2" className="input" maxLength={4} value={formData.phone2} onChange={handleChange} placeholder="0000" />
+              <span>-</span>
+              <input required type="tel" name="phone3" className="input" maxLength={4} value={formData.phone3} onChange={handleChange} placeholder="0000" />
+            </div>
           </div>
 
           <h3 className={styles.sectionTitle}>緊急連絡先</h3>
-          <p style={{ fontSize: "0.85rem", color: "var(--secondary-foreground)", marginBottom: "1rem" }}>
-            万が一のことがあった時に連絡できる番号をお書きください。
-          </p>
-
+          <div className="form-group">
+            <label>氏名 *</label>
+            <div className={styles.nameRow}>
+              <input required type="text" name="emergencyLastName" className="input" value={formData.emergencyLastName} onChange={handleChange} placeholder="苗字" />
+              <input required type="text" name="emergencyFirstName" className="input" value={formData.emergencyFirstName} onChange={handleChange} placeholder="名前" />
+            </div>
+          </div>
+          
           <div className={styles.row}>
             <div className="form-group">
               <label>電話番号 *</label>
-              <input required type="tel" name="emergencyPhone" className="input" value={formData.emergencyPhone} onChange={handleChange} placeholder="例）09012345678" />
+              <div className={styles.phoneGroup}>
+                <input required type="tel" name="emergencyPhone1" className="input" maxLength={4} value={formData.emergencyPhone1} onChange={handleChange} />
+                <span>-</span>
+                <input required type="tel" name="emergencyPhone2" className="input" maxLength={4} value={formData.emergencyPhone2} onChange={handleChange} />
+                <span>-</span>
+                <input required type="tel" name="emergencyPhone3" className="input" maxLength={4} value={formData.emergencyPhone3} onChange={handleChange} />
+              </div>
             </div>
             <div className="form-group">
-              <label>氏名 *</label>
-              <input required type="text" name="emergencyName" className="input" value={formData.emergencyName} onChange={handleChange} placeholder="例）山田 花子" />
+              <label>本人との続柄 *</label>
+              <input required type="text" name="emergencyRelation" className="input" value={formData.emergencyRelation} onChange={handleChange} placeholder="例）妻、父など" />
             </div>
-          </div>
-          <div className="form-group">
-            <label>本人との続柄 *</label>
-            <input required type="text" name="emergencyRelation" className="input" value={formData.emergencyRelation} onChange={handleChange} placeholder="例）妻、父など" />
           </div>
 
           <h3 className={styles.sectionTitle}>ご契約内容</h3>
@@ -161,7 +249,7 @@ export default function RegisterPage() {
             </select>
           </div>
 
-          <h3 className={styles.sectionTitle}>アンケート（サービス向上のためご協力ください）</h3>
+          <h3 className={styles.sectionTitle}>アンケート</h3>
 
           <div className="form-group">
             <label>解決したい身体の悩みを教えてください</label>
@@ -174,12 +262,14 @@ export default function RegisterPage() {
           </div>
 
           <div className="form-group">
-            <label>こんな物やサービスがあったらいいな！があれば教えてください<br/>
-              <span style={{ fontSize: "0.8rem", fontWeight: "normal", color: "var(--secondary-foreground)" }}>
-                （例）プロテイン、肌が綺麗になるやつ、疲れにくくなるサプリなど、ざっくりとした内容でOKです。
-              </span>
-            </label>
-            <textarea name="desiredServices" className={`input ${styles.textarea}`} value={formData.desiredServices} onChange={handleChange}></textarea>
+            <label>こんな物やサービスがあったらいいな！があれば教えてください</label>
+            <textarea 
+              name="desiredServices" 
+              className={`input ${styles.textarea}`} 
+              value={formData.desiredServices} 
+              onChange={handleChange}
+              placeholder="例）プロテイン、肌が綺麗になるやつ、疲れにくくなるサプリなど"
+            ></textarea>
           </div>
 
           <div className={styles.consentWrapper}>

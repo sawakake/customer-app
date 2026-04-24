@@ -122,3 +122,35 @@
   resize: vertical;
   min-height: 100px;
 }
+.nameRow, .dobGroup, .phoneGroup, .postalGroup {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.nameRow input, .dobGroup select, .phoneGroup input {
+  flex: 1;
+}
+
+.postalGroup input[name="postalCode1"] {
+  width: 80px;
+  flex: none;
+}
+.postalGroup input[name="postalCode2"] {
+  width: 100px;
+  flex: none;
+}
+
+.postHint {
+  font-size: 0.75rem;
+  color: var(--secondary-foreground);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+@media (max-width: 480px) {
+  .phoneGroup {
+    flex-wrap: wrap;
+  }
+}
