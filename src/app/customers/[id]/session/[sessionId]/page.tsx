@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function SessionDetailPage({ 
   params 
 }: { 
-  params: { id: string, sessionId: string } 
+  params: Promise<{ id: string, sessionId: string }> 
 }) {
   const { id, sessionId } = await params;
 
