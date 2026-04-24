@@ -1,23 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import styles from "./page.module.css";
 import Sidebar from "@/components/Sidebar";
 import Link from "next/link";
-import { UserPlus, Search, ArrowRight } from "lucide-react";
+import { Search, ArrowRight, QrCode } from "lucide-react";
+import ShareFormModal from "@/components/ShareFormModal";
 
 export default function Dashboard() {
   const { data: session } = useSession();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [customers, setCustomers] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
-  const [origin, setOrigin] = useState("");
   const [activePlan, setActivePlan] = useState("すべて");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setOrigin(window.location.origin);
     Promise.all([
       fetch('/api/customers').then(res => res.json()),
       fetch('/api/dashboard-stats').then(res => res.json())
@@ -27,13 +27,6 @@ export default function Dashboard() {
       setIsLoading(false);
     });
   }, []);
-
-  const regUrl = `${origin}/register`;
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(regUrl);
-    alert("URLをコピーしました。LINE等に貼り付けて送信してください。");
-  };
 
   const plans = Array.from(new Set(customers.map(c => c.plan || "未設定")));
 
@@ -63,28 +56,12 @@ export default function Dashboard() {
             <h1>経営管理ダッシュボード</h1>
             <p>ジムの稼働状況と数値をリアルタイムで把握しましょう</p>
           </div>
-        </div>
-
-        {/* お客様共有用セクション */}
-        <div className={`card ${styles.shareCard}`}>
-          <div className={styles.shareInfo}>
-            <div className={styles.shareText}>
-              <h3>お客様用カウンセリングシート</h3>
-              <p>新規のお客様には、以下のURLまたはQRコードを案内してください。</p>
-              <div className={styles.urlBox}>
-                <code>{regUrl}</code>
-                <button onClick={handleCopy} className="btn btn-secondary">コピー</button>
-              </div>
-            </div>
-            <div className={styles.qrBox}>
-              <img 
-                src={`https://chart.googleapis.com/chart?chs=120x120&cht=qr&chl=${encodeURIComponent(regUrl)}&choe=UTF-8`} 
-                alt="Registration QR Code" 
-                className={styles.qrImg}
-              />
-              <span>案内用QRコード</span>
-            </div>
-          </div>
+          <button 
+            onClick={() => setIsModalOpen(true)} 
+            className={`btn btn-primary ${styles.btnIcon}`}
+          >
+            <QrCode size={18} /> お客様情報入力シートはこちら
+          </button>
         </div>
 
         {stats && (
@@ -118,10 +95,6 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-
-        <div className={styles.statsGrid}>
-          {/* 削除または縮小 */}
-        </div>
 
         <div className={`card ${styles.listCard}`}>
           <div className={styles.listHeader}>
@@ -167,6 +140,12 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+
+        {/* 共有モーダル */}
+        <ShareFormModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+        />
       </main>
     </div>
   );
