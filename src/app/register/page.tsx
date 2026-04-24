@@ -128,6 +128,7 @@ export default function RegisterPage() {
         <div className={styles.header}>
           <img src="/images/gym-logo.png" alt="BodyCareGymCONNECT" className={styles.registerLogo} />
           <h1>BodyCareGymCONNECT</h1>
+          <h2>お客様情報入力フォーム</h2>
           <p>以下のフォームに必要事項をご記入の上、送信をお願いいたします。</p>
         </div>
 
