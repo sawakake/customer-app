@@ -78,6 +78,84 @@
   font-size: 1rem;
 }
 
+.planStatus {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--secondary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.planName {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.75rem;
+}
+
+.progressContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--secondary-foreground);
+  font-weight: 600;
+}
+
+.progressBar {
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 0.5s ease-out;
+}
+
+.goalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.goalItem label {
+  font-size: 0.75rem;
+  color: var(--secondary-foreground);
+  margin-bottom: 0.25rem;
+  display: block;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.goalValue {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.goalRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.goalUpdateBtn {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
 .age {
   color: var(--secondary-foreground);
   font-weight: 500;

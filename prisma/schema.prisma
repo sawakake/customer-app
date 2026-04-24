@@ -81,9 +81,11 @@ model Goal {
   customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   customerId       String
 
-  longTermPurpose  String   // 目的
-  monthlyGoal      String   // 今月の目標
-  month            String   // YYYY-MM形式など
+  longTermPurpose  String   // 達成したい目的
+  actionPlan       String?  // 具体的なアクション・今月の目標
+  targetWeight     Float?   // 目標体重
+  deadline         DateTime? // 達成期限
+  month            String   // 管理用（月の区切りなど）
 }
 
 model Session {

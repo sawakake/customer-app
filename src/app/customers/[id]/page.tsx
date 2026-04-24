@@ -36,6 +36,25 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
   const age = new Date().getFullYear() - dob.getFullYear();
   const currentGoal = customer.goals[0];
 
+  // セッション進捗計算
+  const totalSessionsMatch = customer.plan?.match(/(\d+)回/);
+  const totalSessions = totalSessionsMatch ? parseInt(totalSessionsMatch[1]) : null;
+  const isMonthly = customer.plan?.includes("定額");
+
+  let usedSessions = 0;
+  if (isMonthly) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    usedSessions = customer.sessions.filter(s => {
+      const d = new Date(s.date);
+      return d >= startOfMonth && s.type !== "計測のみ";
+    }).length;
+  } else {
+    usedSessions = customer.sessions.filter(s => s.type !== "計測のみ").length;
+  }
+
+  const progressPercent = totalSessions ? Math.min((usedSessions / totalSessions) * 100, 100) : 0;
+
   // 身体側面の最新データを取得
   const latestMetricWithSizes = [...customer.metrics]
     .reverse()
@@ -57,18 +76,32 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
   return (
     <div className={styles.container}>
       <div className={styles.navHeader}>
-        <Link href="/dashboard" className={styles.backLink}>
-          <ArrowLeft size={20} /> ダッシュボードに戻る
+        <Link href="/dashboard/customers" className={styles.backLink}>
+          <ArrowLeft size={20} /> 顧客一覧に戻る
         </Link>
       </div>
 
       <div className={styles.header}>
         <div className={styles.nameBlock}>
-          <div className={styles.furigana}>{customer.furigana} - {customer.plan || 'プラン未設定'}</div>
+          <div className={styles.furigana}>{customer.furigana}</div>
           <h1>
             {customer.name} 
             <span className={styles.badge} style={{ marginLeft: '1rem', fontSize: '0.9rem' }}>{customer.gender}</span>
           </h1>
+          <div className={styles.planStatus}>
+            <span className={styles.planName}>{customer.plan || 'プラン未設定'}</span>
+            {totalSessions && (
+              <div className={styles.progressContainer}>
+                <div className={styles.progressHeader}>
+                  <span>利用状況: <strong>{usedSessions}</strong> / {totalSessions} 回</span>
+                  <span>{progressPercent.toFixed(0)}%</span>
+                </div>
+                <div className={styles.progressBar}>
+                  <div className={styles.progressFill} style={{ width: `${progressPercent}%` }}></div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         <div className={styles.actionGroup}>
           <DeleteCustomerButton customerId={id} customerName={customer.name} />
@@ -109,7 +142,7 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
             </div>
             <div className={styles.infoItem} style={{ gridColumn: 'span 2' }}>
               <label>緊急連絡先 (氏名 / 続柄 / 電話番号)</label>
-              <div className={styles.infoValue} style={{ color: 'var(--destructive)' }}>
+              <div className={styles.infoValue} style={{ color: 'var(--destructive)', fontSize: '0.85rem' }}>
                 {customer.emergencyName || '未登録'} ({customer.emergencyRelation || '--'}) : {customer.emergencyPhone || '--'}
               </div>
             </div>
@@ -147,34 +180,40 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
               </div>
             </div>
           ) : (
-            <p style={{ color: 'var(--secondary-foreground)' }}>サイズ計測のデータがまだありません。</p>
+            <p style={{ color: 'var(--secondary-foreground)', fontSize: '0.9rem' }}>データがまだありません。</p>
           )}
         </div>
 
         <div className={`card ${styles.goalCard}`}>
           <h2 className={styles.sectionTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Target color="var(--accent)" /> 目的・目標 (鏡に貼る用)
+            <Target color="var(--primary)" /> 目標管理
           </h2>
-          {currentGoal ? (
-            <div>
-              <div style={{ marginBottom: '1rem' }}>
-                <h4 style={{ color: "var(--accent)" }}>中長期の目的</h4>
-                <p style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{currentGoal.longTermPurpose}</p>
+          <div className={styles.goalContent}>
+            <div className={styles.goalItem}>
+              <label>達成したい目的</label>
+              <div className={styles.goalValue}>{currentGoal?.longTermPurpose || '未設定'}</div>
+            </div>
+            
+            <div className={styles.goalRow}>
+              <div className={styles.goalItem}>
+                <label>目標体重</label>
+                <div className={styles.goalValue}>{currentGoal?.targetWeight ? `${currentGoal.targetWeight} kg` : '--'}</div>
               </div>
-              <div>
-                <h4 style={{ color: "var(--accent)" }}>今月({currentGoal.month})の目標</h4>
-                <p style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{currentGoal.monthlyGoal}</p>
-              </div>
-              <div style={{ marginTop: '1.5rem' }}>
-                <button className="btn btn-secondary">目標を更新する</button>
+              <div className={styles.goalItem}>
+                <label>達成期限</label>
+                <div className={styles.goalValue}>{currentGoal?.deadline ? new Date(currentGoal.deadline).toLocaleDateString('ja-JP') : '--'}</div>
               </div>
             </div>
-          ) : (
-            <div>
-              <p style={{ color: 'var(--secondary-foreground)', marginBottom: '1rem' }}>目標がまだ設定されていません。</p>
-              <button className="btn btn-secondary">目標を設定する</button>
+
+            <div className={styles.goalItem}>
+              <label>具体的なアクション・今月の目標</label>
+              <div className={styles.goalValue}>{currentGoal?.actionPlan || '未設定'}</div>
             </div>
-          )}
+
+            <Link href={`/customers/${id}/goals`} className={`btn btn-secondary ${styles.goalUpdateBtn}`}>
+              目標を更新する
+            </Link>
+          </div>
         </div>
       </div>
 
