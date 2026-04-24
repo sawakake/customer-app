@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
-export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CustomerDetailPage({ params }: { params: any }) {
   const { id } = await params;
   
   const customer = await prisma.customer.findUnique({

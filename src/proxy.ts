@@ -1,4 +1,4 @@
-export { auth as middleware } from "@/auth";
+export { auth as proxy } from "@/auth";
 
 export const config = {
   // 保護したいパスを指定（これ以外のパスはログイン不要）

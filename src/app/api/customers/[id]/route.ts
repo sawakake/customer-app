@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<any> }
 ) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const data = await request.json();
 
     const updatedCustomer = await prisma.customer.update({
@@ -36,10 +36,10 @@ export async function PUT(
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<any> }
 ) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const customer = await prisma.customer.findUnique({
       where: { id },
       include: {
