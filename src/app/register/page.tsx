@@ -138,7 +138,7 @@ export default function RegisterPage() {
           <div className="form-group">
             <label>氏名 *</label>
             <div className={styles.nameRow}>
-              <input required type="text" name="lastName" className="input" value={formData.lastName} onChange={handleChange} placeholder="苗字" />
+              <input required type="text" name="lastName" className="input" value={formData.lastName} onChange={handleChange} placeholder="名字" />
               <input required type="text" name="firstName" className="input" value={formData.firstName} onChange={handleChange} placeholder="名前" />
             </div>
           </div>
@@ -211,7 +211,7 @@ export default function RegisterPage() {
           <div className="form-group">
             <label>氏名 *</label>
             <div className={styles.nameRow}>
-              <input required type="text" name="emergencyLastName" className="input" value={formData.emergencyLastName} onChange={handleChange} placeholder="苗字" />
+              <input required type="text" name="emergencyLastName" className="input" value={formData.emergencyLastName} onChange={handleChange} placeholder="名字" />
               <input required type="text" name="emergencyFirstName" className="input" value={formData.emergencyFirstName} onChange={handleChange} placeholder="名前" />
             </div>
           </div>

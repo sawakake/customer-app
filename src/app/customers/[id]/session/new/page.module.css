@@ -137,6 +137,73 @@
   gap: 0.5rem;
 }
 
+.menuList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.menuItemRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.photoSection {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.photoRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.photoCol h4 {
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  color: var(--primary);
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.photoDrop {
+  aspect-ratio: 3/4;
+  background: var(--secondary);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--secondary-foreground);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.photoDrop:hover {
+  border-color: var(--primary);
+  background: white;
+}
+
+.helpText {
+  font-size: 0.7rem;
+  color: var(--secondary-foreground);
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+.textareaSmall {
+  height: 80px;
+  resize: vertical;
+}
+
 .lrGroup {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma";
 import styles from "./page.module.css";
 import MetricsChart from "@/components/charts/MetricsChart";
 import Link from "next/link";
-import { Mic, Target, FileText, Activity, ArrowLeft, Ruler } from "lucide-react";
+import { Mic, Target, FileText, Activity, ArrowLeft, Ruler, Sparkles } from "lucide-react";
 import { notFound } from "next/navigation";
+import GenerateReportButton from "@/components/GenerateReportButton";
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,11 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
         take: 1
       },
       sessions: {
-        orderBy: { date: "desc" }
+        orderBy: { date: "desc" },
+        include: { menuItems: true }
+      },
+      reports: {
+        orderBy: { createdAt: "desc" }
       }
     }
   });
@@ -291,6 +296,31 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
                 </li>
               ))}
             </ul>
+          )}
+        </div>
+      </div>
+
+      {/* AIレポートセクション */}
+      <div className="card" style={{ marginTop: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2 className={styles.sectionTitle} style={{ margin: 0, border: 'none' }}>
+            <Sparkles color="var(--primary)" size={20} /> AIコーチングレポート
+          </h2>
+          <GenerateReportButton customerId={id} type="Monthly" />
+        </div>
+        <div className={styles.reportList}>
+          {customer.reports?.length > 0 ? (
+            customer.reports.map((report: any) => (
+              <div key={report.id} className={styles.reportItem}>
+                <div className={styles.reportHeader}>
+                  <strong className={styles.reportTitle}>{report.title}</strong>
+                  <span className={styles.reportDate}>{new Date(report.createdAt).toLocaleDateString('ja-JP')}</span>
+                </div>
+                <div className={styles.reportPreview}>{report.content.substring(0, 150)}...</div>
+              </div>
+            ))
+          ) : (
+            <p className={styles.emptyText}>まだレポートが作成されていません。上のボタンから作成できます。</p>
           )}
         </div>
       </div>

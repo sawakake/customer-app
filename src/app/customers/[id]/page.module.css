@@ -306,7 +306,48 @@
   margin-bottom: 0.5rem;
 }
 
-.historyBadges {
+.reportList {
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.reportItem {
+  padding: 1.25rem;
+  background: var(--secondary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reportItem:hover {
+  border-color: var(--primary);
+  background: white;
+}
+
+.reportHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.reportTitle {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.reportDate {
+  font-size: 0.8rem;
+  color: var(--secondary-foreground);
+}
+
+.reportPreview {
+  font-size: 0.9rem;
+  color: var(--secondary-foreground);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

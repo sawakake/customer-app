@@ -3,6 +3,7 @@ import styles from "./page.module.css";
 import { ArrowLeft, Calendar, Clock, Activity, Sparkles, Ruler } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import GenerateReportButton from "@/components/GenerateReportButton";
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +18,8 @@ export default async function SessionDetailPage({
     where: { id: sessionId },
     include: {
       customer: true,
+      menuItems: true,
+      photos: true,
     }
   });
 
@@ -53,6 +56,7 @@ export default async function SessionDetailPage({
         <div className={styles.metaBadges}>
           <span className={styles.badge}><Clock size={14} /> {session.duration}分</span>
           <span className={styles.badge}>{session.type}</span>
+          <GenerateReportButton customerId={id} type="Session" />
         </div>
       </div>
 
@@ -68,35 +72,61 @@ export default async function SessionDetailPage({
               </div>
               <div className={styles.metricItem}>
                 <label>血圧</label>
-                <div className={styles.value}>{metric?.bloodPressure || '--'}</div>
+                <div className={styles.value}>
+                  {metric?.bloodPressureHigh ? `${metric.bloodPressureHigh} / ${metric.bloodPressureLow}` : '--'}
+                </div>
               </div>
               <div className={styles.metricItem}>
                 <label>本人の体調</label>
                 <div className={styles.value}>{session.conditionSelf || '--'}</div>
               </div>
             </div>
-            
-            {(metric?.waist || metric?.armL) && (
-              <div className={styles.sizeSection}>
-                <h4 className={styles.subTitle}><Ruler size={14} /> 身体サイズ</h4>
-                <div className={styles.sizeGrid}>
-                  <div><span>ウェスト:</span> {metric.waist || '--'} cm</div>
-                  <div><span>へそ周り:</span> {metric.belly || '--'} cm</div>
-                  <div><span>二の腕:</span> {metric.armL || '--'} / {metric.armR || '--'} cm</div>
-                  <div><span>太もも:</span> {metric.thighL || '--'} / {metric.thighR || '--'} cm</div>
-                  <div><span>ふくらはぎ:</span> {metric.calfL || '--'} / {metric.calfR || '--'} cm</div>
-                </div>
-              </div>
-            )}
           </div>
+
+          {/* 姿勢写真 */}
+          {session.photos.length > 0 && (
+            <div className="card" style={{ marginBottom: '1.5rem' }}>
+              <h3 className={styles.sectionTitle}>姿勢分析写真</h3>
+              <div className={styles.photoGrid}>
+                {session.photos.map(photo => (
+                  <div key={photo.id} className={styles.photoItem}>
+                    <img src={photo.url} alt={photo.viewType} />
+                    <div className={styles.photoLabel}>{photo.timing} - {photo.viewType}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* トレーニング内容 */}
           <div className="card">
-            <h3 className={styles.sectionTitle}>トレーニング記録</h3>
-            <div className={styles.contentBlock}>
-              <label>実施メニュー</label>
-              <p className={styles.text}>{session.routines || "記録なし"}</p>
+            <h3 className={styles.sectionTitle}>トレーニング・ストレッチ記録</h3>
+            
+            {session.menuItems.length > 0 ? (
+              <div className={styles.menuList}>
+                {session.menuItems.map((item) => (
+                  <div key={item.id} className={styles.menuItem}>
+                    <span className={styles.menuType}>{item.type === 'トレーニング' ? '重' : '伸'}</span>
+                    <div className={styles.menuDetail}>
+                      <div className={styles.menuName}>{item.name}</div>
+                      <div className={styles.menuStats}>
+                        {item.weight && <span>{item.weight} / </span>}
+                        {item.sets && <span>{item.sets} set / </span>}
+                        {item.reps && <span>{item.reps} 回</span>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.emptyText}>詳細な種目記録はありません</p>
+            )}
+
+            <div className={styles.contentBlock} style={{ marginTop: '1.5rem' }}>
+              <label>フリー記入欄</label>
+              <p className={styles.text}>{session.routinesText || "記録なし"}</p>
             </div>
+
             <div className={styles.contentBlock}>
               <label>宿題・次回の課題</label>
               <p className={styles.text}>{session.homework || "記録なし"}</p>

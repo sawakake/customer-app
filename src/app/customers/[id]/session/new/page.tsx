@@ -20,7 +20,8 @@ export default function NewSessionPage() {
   // Form State
   const [sessionForm, setSessionForm] = useState({
     weight: "",
-    bloodPressure: "",
+    bloodPressureHigh: "",
+    bloodPressureLow: "",
     duration: "60",
     type: "通常",
     waist: "",
@@ -33,11 +34,21 @@ export default function NewSessionPage() {
     calfR: "",
     conditionSelf: "良好",
     conditionObjective: "",
-    routines: "",
+    routines: "", // 旧
     homework: "",
     summary: "",
     motivation: "",
     advice: "",
+    freeNote: "",
+  });
+
+  const [menuItems, setMenuItems] = useState<any[]>([
+    { name: "", type: "トレーニング", sets: 3, reps: "", weight: "", note: "" }
+  ]);
+
+  const [photos, setPhotos] = useState<any>({
+    before: { front: null, side: null, other: null },
+    after: { front: null, side: null, other: null }
   });
 
   useEffect(() => {
@@ -51,18 +62,28 @@ export default function NewSessionPage() {
   }, [customerId]);
 
   const handleAIAnalysis = (aiData: any) => {
+    // AIからの解析結果をメニュー等に反映するロジック（後ほど強化）
     setSessionForm(prev => ({
       ...prev,
-      routines: aiData.routines || prev.routines,
-      homework: aiData.homework || prev.homework,
       summary: aiData.summary || prev.summary,
       motivation: aiData.motivation || prev.motivation,
       advice: aiData.advice || prev.advice,
+      homework: aiData.homework || prev.homework,
     }));
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setSessionForm({ ...sessionForm, [e.target.name]: e.target.value });
+  };
+
+  const addMenuItem = () => {
+    setMenuItems([...menuItems, { name: "", type: "トレーニング", sets: 3, reps: "", weight: "", note: "" }]);
+  };
+
+  const updateMenuItem = (index: number, field: string, value: any) => {
+    const newItems = [...menuItems];
+    newItems[index][field] = value;
+    setMenuItems(newItems);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -76,6 +97,9 @@ export default function NewSessionPage() {
         body: JSON.stringify({
           customerId,
           ...sessionForm,
+          menuItems,
+          // 写真データは本来S3等に上げるが、今回はJSONの一部として（構造のみ）
+          photos,
           type: isMonthlyMode ? "計測のみ" : sessionForm.type,
           duration: isMonthlyMode ? 0 : parseInt(sessionForm.duration),
         }),
@@ -102,7 +126,7 @@ export default function NewSessionPage() {
         </Link>
         <h1 className={styles.title}>
           {isMonthlyMode ? <Ruler size={32} /> : null}
-          {isMonthlyMode ? '月次身体データ計測' : '本日のセッション記録'}: {customerName} 様
+          {isMonthlyMode ? '月次身体データ計測' : '今日のセッション記録'}: {customerName} 様
         </h1>
       </div>
 
@@ -112,7 +136,7 @@ export default function NewSessionPage() {
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
-                  <Sparkles className={styles.aiIcon} /> AI アシスト録音
+                  <Sparkles className={styles.aiIcon} /> AI アシスト録音（会話から種目を自動抽出）
                 </h2>
                 <div className={styles.sessionMetaInputs}>
                   <select name="type" className="input-sm" value={sessionForm.type} onChange={handleChange}>
@@ -139,9 +163,13 @@ export default function NewSessionPage() {
                   <label>体重 (kg)</label>
                   <input type="number" step="0.1" name="weight" className="input" value={sessionForm.weight} onChange={handleChange} placeholder="0.0" />
                 </div>
-                <div className="form-group">
-                  <label>血圧 (最高/最低)</label>
-                  <input type="text" name="bloodPressure" className="input" value={sessionForm.bloodPressure} onChange={handleChange} placeholder="120/80" />
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label>血圧 (最高 / 最低)</label>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input type="number" name="bloodPressureHigh" className="input" value={sessionForm.bloodPressureHigh} onChange={handleChange} placeholder="上" />
+                    <span>/</span>
+                    <input type="number" name="bloodPressureLow" className="input" value={sessionForm.bloodPressureLow} onChange={handleChange} placeholder="下" />
+                  </div>
                 </div>
               </div>
               
@@ -160,6 +188,31 @@ export default function NewSessionPage() {
                     <label>トレーナー評価</label>
                     <input type="text" name="conditionObjective" className="input" value={sessionForm.conditionObjective} onChange={handleChange} placeholder="例）動きが良い" />
                   </div>
+                </div>
+              )}
+
+              {/* 写真添付セクション */}
+              {!isMonthlyMode && (
+                <div className={styles.photoSection}>
+                  <div className={styles.photoRow}>
+                    <div className={styles.photoCol}>
+                      <h4>【Before】姿勢写真</h4>
+                      <div className={styles.photoGrid}>
+                        <div className={styles.photoDrop}><span>前</span></div>
+                        <div className={styles.photoDrop}><span>横</span></div>
+                        <div className={styles.photoDrop}><span>他</span></div>
+                      </div>
+                    </div>
+                    <div className={styles.photoCol}>
+                      <h4>【After】姿勢写真</h4>
+                      <div className={styles.photoGrid}>
+                        <div className={styles.photoDrop}><span>前</span></div>
+                        <div className={styles.photoDrop}><span>横</span></div>
+                        <div className={styles.photoDrop}><span>他</span></div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className={styles.helpText}>※写真は保存後にAI姿勢分析が実行されます</p>
                 </div>
               )}
 
@@ -212,27 +265,73 @@ export default function NewSessionPage() {
 
             {!isMonthlyMode && (
               <div className="card" style={{ marginTop: '1.5rem' }}>
-                <h2 className={styles.sectionTitle}>トレーニング・会話内容（AI自動入力可）</h2>
+                <h2 className={styles.sectionTitle}>トレーニング・ストレッチ項目</h2>
                 
-                <div className="form-group">
-                  <label>実施メニュー・回数</label>
+                <div className={styles.menuList}>
+                  {menuItems.map((item, index) => (
+                    <div key={index} className={styles.menuItemRow}>
+                      <select 
+                        className="input-sm" 
+                        value={item.type} 
+                        onChange={(e) => updateMenuItem(index, 'type', e.target.value)}
+                      >
+                        <option value="トレーニング">トレ</option>
+                        <option value="ストレッチ">スト</option>
+                      </select>
+                      <input 
+                        type="text" 
+                        className="input" 
+                        value={item.name} 
+                        onChange={(e) => updateMenuItem(index, 'name', e.target.value)}
+                        placeholder="種目名" 
+                        style={{ flex: 2 }}
+                      />
+                      <input 
+                        type="number" 
+                        className="input" 
+                        value={item.sets} 
+                        onChange={(e) => updateMenuItem(index, 'sets', parseInt(e.target.value))}
+                        placeholder="Set" 
+                      />
+                      <input 
+                        type="text" 
+                        className="input" 
+                        value={item.reps} 
+                        onChange={(e) => updateMenuItem(index, 'reps', e.target.value)}
+                        placeholder="回数" 
+                      />
+                      <input 
+                        type="text" 
+                        className="input" 
+                        value={item.weight} 
+                        onChange={(e) => updateMenuItem(index, 'weight', e.target.value)}
+                        placeholder="重さ" 
+                      />
+                    </div>
+                  ))}
+                  <button type="button" onClick={addMenuItem} className="btn btn-secondary btn-sm" style={{ width: '100%' }}>
+                    + 項目を追加
+                  </button>
+                </div>
+
+                <div className="form-group" style={{ marginTop: '1.5rem' }}>
+                  <label>フリー記入欄（内容・気づき）</label>
                   <textarea 
-                    name="routines" 
-                    className={`input ${styles.textarea}`} 
-                    value={sessionForm.routines} 
+                    name="freeNote" 
+                    className={`input ${styles.textareaSmall}`} 
+                    value={sessionForm.freeNote} 
                     onChange={handleChange}
-                    placeholder="AI分析または手動入力..."
+                    placeholder="その他の内容はこちらに記入してください"
                   ></textarea>
                 </div>
 
                 <div className="form-group">
-                  <label>会話の要約</label>
+                  <label>会話の要約（AI分析結果）</label>
                   <textarea 
                     name="summary" 
-                    className={`input ${styles.textarea}`} 
+                    className={`input ${styles.textareaSmall}`} 
                     value={sessionForm.summary} 
                     onChange={handleChange}
-                    placeholder="AI分析または手動入力..."
                   ></textarea>
                 </div>
 

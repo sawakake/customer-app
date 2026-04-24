@@ -58,7 +58,8 @@ model Metric {
 
   // セッション計測スコア
   weight              Float?
-  bloodPressure       String?  // 例: "120/80"
+  bloodPressureHigh   Int?     // 上の血圧
+  bloodPressureLow    Int?     // 下の血圧
 
   // 月1回身体計測
   waist               Float?
@@ -99,16 +100,55 @@ model Session {
   type               String   @default("通常") // 通常 / 体験
 
   // コンディション
-  conditionSelf      String?  // 自己申告
-  conditionObjective String?  // 他者評価（身体的・精神的）
+  conditionSelf      String?
+  conditionObjective String?
 
-  // トレーニング内容
-  routines           String?  // 内容、回数などテキストで記録
-  homework           String?  // 出した宿題
-  conversation       String?  // 会話音声要約または生メモ
+  // トレーニング内容（旧テキスト、互換性のために残す）
+  routinesText       String?  @map("routines")
+  homework           String?
+  conversation       String?
 
-  // AI機能管理
-  aiSummary          String?  // AIによる会話要約
-  aiAdvice           String?  // AIによる目標達成のためのアドバイス
-  clientMotivation   String?  // AIによる顧客動向（最近のモチベーション等）分析
+  // 構造化されたメニュー
+  menuItems          SessionMenu[]
+  photos             SessionPhoto[]
+
+  // AI分析
+  aiSummary          String?
+  aiAdvice           String?
+  clientMotivation   String?
+}
+
+model SessionMenu {
+  id        String   @id @default(uuid())
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId String
+  name      String   // 種目名
+  type      String   // トレーニング / ストレッチ
+  sets      Int?     // セット数
+  reps      String?  // 回数（例: "10,10,12"）
+  weight    String?  // 重さ（例: "20kg"）
+  note      String?  // 備考
+}
+
+model SessionPhoto {
+  id        String   @id @default(uuid())
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId String
+  url       String   // 画像URL
+  viewType  String   // Front, Side, Other
+  timing    String   // Before, After
+  aiAnalysis String? // AIによる姿勢分析結果
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id            String   @id @default(uuid())
+  createdAt     DateTime @default(now())
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId    String
+  title         String
+  content       String   // AI生成レポート内容
+  type          String   // Session / Monthly
+  periodStart   DateTime?
+  periodEnd     DateTime?
 }

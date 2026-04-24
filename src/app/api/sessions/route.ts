@@ -4,13 +4,13 @@ import { prisma } from '@/lib/prisma';
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { customerId, weight, bloodPressure, ...sessionData } = data;
+    const { customerId, weight, bloodPressureHigh, bloodPressureLow, menuItems, ...sessionData } = data;
 
     if (!customerId) {
       return NextResponse.json({ error: 'Customer ID is required' }, { status: 400 });
     }
 
-    // 1. Create the session
+    // 1. Create the session with menuItems
     const session = await prisma.session.create({
       data: {
         customerId,
@@ -18,22 +18,33 @@ export async function POST(request: Request) {
         type: sessionData.type || "通常",
         conditionSelf: sessionData.conditionSelf,
         conditionObjective: sessionData.conditionObjective,
-        routines: sessionData.routines,
+        routinesText: sessionData.freeNote,
         homework: sessionData.homework,
         conversation: sessionData.summary,
         aiSummary: sessionData.summary,
         aiAdvice: sessionData.advice,
         clientMotivation: sessionData.motivation,
+        menuItems: {
+          create: menuItems?.map((item: any) => ({
+            name: item.name,
+            type: item.type,
+            sets: item.sets || null,
+            reps: item.reps || null,
+            weight: item.weight || null,
+            note: item.note || null
+          })).filter((item: any) => item.name) // 名前がないものは除外
+        }
       }
     });
 
     // 2. Create metrics if physical data is provided
-    if (weight || bloodPressure || data.waist || data.belly || data.armL || data.armR || data.thighL || data.thighR || data.calfL || data.calfR) {
+    if (weight || bloodPressureHigh || bloodPressureLow || data.waist || data.belly || data.armL || data.armR || data.thighL || data.thighR || data.calfL || data.calfR) {
       await prisma.metric.create({
         data: {
           customerId,
           weight: weight ? parseFloat(weight) : null,
-          bloodPressure: bloodPressure || null,
+          bloodPressureHigh: bloodPressureHigh ? parseInt(bloodPressureHigh) : null,
+          bloodPressureLow: bloodPressureLow ? parseInt(bloodPressureLow) : null,
           waist: data.waist ? parseFloat(data.waist) : null,
           belly: data.belly ? parseFloat(data.belly) : null,
           armL: data.armL ? parseFloat(data.armL) : null,
