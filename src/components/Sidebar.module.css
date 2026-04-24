@@ -27,19 +27,19 @@
 
 .topLogo {
   width: 100%;
-  max-width: 160px;
+  max-width: 200px;
   height: auto;
   object-fit: contain;
   display: block;
 }
 
 .logoText {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--secondary-foreground);
-  letter-spacing: 0.02em;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
 }
 
 .nav {
