@@ -1,6 +1,6 @@
 .sidebar {
   width: 260px;
-  background: var(--card);
+  background: #ffffff;
   border-right: 1px solid var(--border);
   height: 100vh;
   display: flex;
@@ -20,26 +20,22 @@
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
-  background: #ffffff;
-  border-radius: var(--radius);
+  text-align: center;
 }
 
 .topLogo {
   width: 100%;
-  max-width: 200px;
+  max-width: 180px;
   height: auto;
   object-fit: contain;
-  display: block;
 }
 
 .logoText {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 800;
   color: var(--primary);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  margin-top: 0.5rem;
 }
 
 .nav {
@@ -90,43 +86,10 @@
   font-weight: 600;
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.chevron {
-  color: var(--secondary-foreground);
-  opacity: 0.5;
-}
-
 .footer {
   padding: 1rem;
   border-top: 1px solid var(--border);
-  background: rgba(248, 250, 252, 0.5);
-}
-
-.userProfile {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  background: var(--primary);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-
-.userInfo {
-  flex: 1;
+  background: #f8fafc;
 }
 
 .logoutBtn {
@@ -149,11 +112,4 @@
 .logoutBtn:hover {
   background: var(--destructive);
   color: white;
-}
-
-.navItem.active {
-  background: rgba(245, 158, 11, 0.1);
-  color: var(--primary);
-  border-right: 3px solid var(--primary);
-  font-weight: 600;
 }

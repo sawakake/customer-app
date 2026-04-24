@@ -2,30 +2,27 @@
   --background: #f8f9fc;
   --foreground: #1e293b;
   
-  --background: #ffffff;
-  --foreground: #0f172a;
-  
-  --primary: #c2410c;
-  --primary-rgb: 194, 65, 12;
-  --primary-hover: #9a3412;
+  --primary: #3b82f6;
+  --primary-rgb: 59, 130, 246;
+  --primary-hover: #2563eb;
   --primary-foreground: #ffffff;
   
-  --secondary: #f8fafc;
-  --secondary-foreground: #334155;
+  --secondary: #e2e8f0;
+  --secondary-foreground: #475569;
 
-  --accent: #b45309;
-  --accent-rgb: 180, 83, 9;
+  --accent: #10b981;
+  --accent-rgb: 16, 185, 129;
   --accent-foreground: #ffffff;
   
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #1e293b;
   
-  --border: #e2e8f0;
-  --input: #f1f5f9;
-  --ring: #c2410c;
+  --border: #cbd5e1;
+  --input: #e2e8f0;
+  --ring: #3b82f6;
 
   --radius: 0.75rem;
   

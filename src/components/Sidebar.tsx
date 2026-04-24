@@ -13,7 +13,7 @@ export default function Sidebar() {
     <aside className={styles.sidebar}>
       <div className={styles.top}>
         <div className={styles.logoContainer}>
-          <img src="/images/logo.png" alt="BodyCareGym CONNECT Logo" className={styles.topLogo} />
+          <img src="/images/logo.png" alt="BodyCareGym CONNECT" className={styles.topLogo} />
           <div className={styles.logoText}>BodyCareGym CONNECT</div>
         </div>
       </div>
