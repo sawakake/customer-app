@@ -231,23 +231,6 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <h3 className={styles.sectionTitle}>ご契約内容</h3>
-          <div className="form-group">
-            <label>契約プラン *</label>
-            <select 
-              required
-              name="plan" 
-              className="input" 
-              value={formData.plan} 
-              onChange={handleChange}
-            >
-              <option value="2ヶ月集中プラン">2ヶ月集中プラン</option>
-              <option value="ボディメイクプラン">ボディメイクプラン</option>
-              <option value="回数券利用">回数券利用</option>
-              <option value="メンテナンスプラン">メンテナンスプラン</option>
-              <option value="その他">その他</option>
-            </select>
-          </div>
 
           <h3 className={styles.sectionTitle}>アンケート</h3>
 

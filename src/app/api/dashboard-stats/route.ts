@@ -57,6 +57,17 @@ export async function GET() {
     // 入会率 (新規入会 / 体験数)
     const enrollmentRate = experienceCount > 0 ? (newEnrollments / experienceCount) * 100 : 0;
 
+    // 売上計算 (60分単価: 8500円)
+    const UNIT_PRICE_60 = 8500;
+    const calculateRevenue = (sessions: any[]) => {
+      return Math.round(sessions.reduce((total, s) => {
+        return total + (s.duration / 60) * UNIT_PRICE_60;
+      }, 0));
+    };
+
+    const thisMonthRevenue = calculateRevenue(thisMonthSessions);
+    const lastMonthRevenue = calculateRevenue(lastMonthSessions);
+
     // プラン別顧客数
     const planStats = allCustomers.reduce((acc: any, c) => {
       const plan = c.plan || "未設定";
@@ -73,7 +84,9 @@ export async function GET() {
         experienceCount,
         newEnrollments,
         enrollmentRate: enrollmentRate.toFixed(1),
-        totalCustomers: allCustomers.length
+        totalCustomers: allCustomers.length,
+        thisMonthRevenue,
+        lastMonthRevenue
       },
       planStats
     });

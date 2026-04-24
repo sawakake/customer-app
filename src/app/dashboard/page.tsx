@@ -87,6 +87,17 @@ export default function Dashboard() {
             </div>
 
             <div className={`card ${styles.kpiCard}`}>
+              <div className={styles.kpiLabel}>概算発生額 (今月 / 先月)</div>
+              <div className={styles.kpiValue}>
+                ¥{stats.summary.thisMonthRevenue.toLocaleString()} 
+                <span className={styles.subText}>/ ¥{stats.summary.lastMonthRevenue.toLocaleString()}</span>
+              </div>
+              <div className={styles.kpiDetail}>
+                単価設定: 8,500円 / 60分
+              </div>
+            </div>
+
+            <div className={`card ${styles.kpiCard}`}>
               <div className={styles.kpiLabel}>総顧客数</div>
               <div className={styles.kpiValue}>{stats.summary.totalCustomers}</div>
               <div className={styles.kpiDetail}>

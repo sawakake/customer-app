@@ -103,10 +103,21 @@ export default function EditCustomerPage() {
             <div className="form-group">
               <label>契約プラン *</label>
               <select name="plan" className="input" value={formData.plan} onChange={handleChange}>
-                <option value="2ヶ月集中プラン">2ヶ月集中プラン</option>
-                <option value="ボディメイクプラン">ボディメイクプラン</option>
-                <option value="回数券利用">回数券利用</option>
-                <option value="メンテナンスプラン">メンテナンスプラン</option>
+                <option value="未設定">-- プランを選択してください --</option>
+                <optgroup label="回数券">
+                  <option value="回数券(12回) - 60分">回数券(12回) - 60分</option>
+                  <option value="回数券(12回) - 90分">回数券(12回) - 90分</option>
+                  <option value="回数券(25回) - 60分">回数券(25回) - 60分</option>
+                  <option value="回数券(25回) - 90分">回数券(25回) - 90分</option>
+                  <option value="回数券(52回) - 60分">回数券(52回) - 60分</option>
+                  <option value="回数券(52回) - 90分">回数券(52回) - 90分</option>
+                </optgroup>
+                <optgroup label="定額プラン（サブスク）">
+                  <option value="定額(月4回) - 60分">定額(月4回) - 60分</option>
+                  <option value="定額(月4回) - 90分">定額(月4回) - 90分</option>
+                  <option value="定額(月8回) - 60分">定額(月8回) - 60分</option>
+                  <option value="定額(月8回) - 90分">定額(月8回) - 90分</option>
+                </optgroup>
                 <option value="その他">その他</option>
               </select>
             </div>
