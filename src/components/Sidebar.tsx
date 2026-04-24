@@ -1,11 +1,12 @@
 "use client";
 
 import styles from "./Sidebar.module.css";
-import { Users, CreditCard, Settings, LogOut, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Users, UserPlus, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 
-export default function Sidebar({ plans, activePlan, onSelectPlan }: { plans: string[], activePlan: string, onSelectPlan: (plan: string) => void }) {
+export default function Sidebar() {
   const pathname = usePathname();
 
   return (
@@ -18,40 +19,25 @@ export default function Sidebar({ plans, activePlan, onSelectPlan }: { plans: st
         <div className={styles.section}>
           <div className={styles.sectionTitle}>メインメニュー</div>
           <Link href="/dashboard" className={`${styles.navItem} ${pathname === '/dashboard' ? styles.active : ''}`}>
-            <Users size={18} /> <span>すべての顧客</span>
+            <LayoutDashboard size={18} /> <span>ダッシュボード</span>
+          </Link>
+          <Link href="/dashboard/customers" className={`${styles.navItem} ${pathname === '/dashboard/customers' ? styles.active : ''}`}>
+            <Users size={18} /> <span>顧客一覧</span>
           </Link>
         </div>
 
         <div className={styles.section}>
-          <div className={styles.sectionTitle}>プラン別表示</div>
-          <button 
-            onClick={() => onSelectPlan("すべて")}
-            className={`${styles.navItem} ${activePlan === "すべて" ? styles.active : ""}`}
-          >
-            <div className={styles.dot} style={{ backgroundColor: '#94a3b8' }} />
-            <span>すべて</span>
-          </button>
-          {plans.map(plan => (
-            <button 
-              key={plan}
-              onClick={() => onSelectPlan(plan)}
-              className={`${styles.navItem} ${activePlan === plan ? styles.active : ""}`}
-            >
-              <ChevronRight size={14} className={styles.chevron} />
-              <span>{plan}</span>
-            </button>
-          ))}
+          <div className={styles.sectionTitle}>アクション</div>
+          <Link href="/register" target="_blank" className={styles.navItem}>
+            <UserPlus size={18} /> <span>新規登録URLを開く</span>
+          </Link>
         </div>
       </nav>
 
       <div className={styles.footer}>
-        <div className={styles.userProfile}>
-          <div className={styles.avatar}>T</div>
-          <div className={styles.userInfo}>
-            <div className={styles.userName}>Trainer Name</div>
-            <div className={styles.userRole}>管理者</div>
-          </div>
-        </div>
+        <button onClick={() => signOut()} className={styles.logoutBtn}>
+          <LogOut size={16} /> ログアウト
+        </button>
       </div>
     </aside>
   );

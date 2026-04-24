@@ -1,4 +1,5 @@
-import TrainerHeader from "@/components/TrainerHeader";
+import Sidebar from "@/components/Sidebar";
+import styles from "./layout.module.css";
 
 export default function DashboardLayout({
   children,
@@ -6,9 +7,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <TrainerHeader />
-      <main>{children}</main>
-    </>
+    <div className={styles.layout}>
+      <Sidebar />
+      <main className={styles.main}>
+        {children}
+      </main>
+    </div>
   );
 }

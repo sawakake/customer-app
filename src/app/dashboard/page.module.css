@@ -138,73 +138,70 @@
   transition: all 0.2s;
 }
 
-.customerCard:hover {
-  border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
-  transform: translateY(-2px);
-}
-
-.customerInfo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.avatarMini {
-  width: 40px;
-  height: 40px;
-  background: var(--secondary);
-  color: var(--primary);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-
-.customerInfo h3 {
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
-}
-
-.planLabel {
-  font-size: 0.75rem;
-  background: rgba(59, 130, 246, 0.1);
-  color: var(--primary);
-  padding: 0.1rem 0.5rem;
-  border-radius: 4px;
-}
-
-.customerMeta {
-  display: flex;
-  align-items: center;
+.subStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 1.5rem;
 }
 
-.status {
+.subCard {
+  padding: 1.5rem;
+}
+
+.subCard h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.statRow span {
+  color: var(--secondary-foreground);
+  font-size: 0.9rem;
+}
+
+.statRow strong {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.statDivider {
+  height: 1px;
+  background: var(--border);
+  margin: 1rem 0;
+}
+
+.planStatsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.planStatItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: #f8fafc;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.planStatItem strong {
+  color: var(--primary);
+}
+
+.btnIcon {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--secondary-foreground);
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.arrow {
-  color: var(--secondary-foreground);
-  opacity: 0.5;
-}
-
-.loading, .empty {
-  padding: 3rem;
-  text-align: center;
-  color: var(--secondary-foreground);
 }
 .shareCard {
   margin-bottom: 2rem;

@@ -1,0 +1,12 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background);
+}
+
+.main {
+  flex: 1;
+  padding: 0;
+  overflow-y: auto;
+  position: relative;
+}
