@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: "Next-generation personal trainer CRM system",
 };
 
+import { Providers } from "@/components/Providers";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,9 +22,9 @@ export default function RootLayout({
   return (
     <html lang="ja" className={inter.variable}>
       <body className={inter.className}>
-        <SessionProvider>
+        <Providers>
           {children}
-        </SessionProvider>
+        </Providers>
       </body>
     </html>
   );
