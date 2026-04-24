@@ -7,6 +7,8 @@ import { notFound } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
+import DeleteCustomerButton from "@/components/DeleteCustomerButton";
+
 export default async function CustomerDetailPage({ params }: { params: any }) {
   const { id } = await params;
   
@@ -69,6 +71,7 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
           </h1>
         </div>
         <div className={styles.actionGroup}>
+          <DeleteCustomerButton customerId={id} customerName={customer.name} />
           <Link href={`/customers/${id}/edit`} className="btn btn-secondary">
             <FileText size={18} /> 修正
           </Link>

@@ -58,3 +58,18 @@ export async function GET(
     return NextResponse.json({ error: 'Failed to fetch customer' }, { status: 500 });
   }
 }
+export async function DELETE(
+  request: Request,
+  context: { params: Promise<any> }
+) {
+  try {
+    const { id } = await context.params;
+    await prisma.customer.delete({
+      where: { id },
+    });
+    return NextResponse.json({ message: 'Customer deleted successfully' });
+  } catch (error) {
+    console.error('Failed to delete customer:', error);
+    return NextResponse.json({ error: 'Failed to delete customer' }, { status: 500 });
+  }
+}
