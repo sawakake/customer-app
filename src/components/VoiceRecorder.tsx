@@ -6,7 +6,7 @@ import styles from "./VoiceRecorder.module.css";
 
 interface VoiceRecorderProps {
   onAnalysisComplete: (data: {
-    routines: string;
+    menuItems?: any[];
     summary: string;
     homework: string;
     motivation: string;

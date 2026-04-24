@@ -62,7 +62,7 @@ export default function NewSessionPage() {
   }, [customerId]);
 
   const handleAIAnalysis = (aiData: any) => {
-    // AIからの解析結果をメニュー等に反映するロジック（後ほど強化）
+    // AIからの解析結果をメニュー等に反映
     setSessionForm(prev => ({
       ...prev,
       summary: aiData.summary || prev.summary,
@@ -70,6 +70,10 @@ export default function NewSessionPage() {
       advice: aiData.advice || prev.advice,
       homework: aiData.homework || prev.homework,
     }));
+
+    if (aiData.menuItems && aiData.menuItems.length > 0) {
+      setMenuItems(aiData.menuItems);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
