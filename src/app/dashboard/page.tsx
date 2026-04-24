@@ -11,11 +11,13 @@ export default function Dashboard() {
   const { data: session } = useSession();
   const [customers, setCustomers] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [origin, setOrigin] = useState("");
   const [activePlan, setActivePlan] = useState("すべて");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setOrigin(window.location.origin);
     Promise.all([
       fetch('/api/customers').then(res => res.json()),
       fetch('/api/dashboard-stats').then(res => res.json())
@@ -25,6 +27,13 @@ export default function Dashboard() {
       setIsLoading(false);
     });
   }, []);
+
+  const regUrl = `${origin}/register`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(regUrl);
+    alert("URLをコピーしました。LINE等に貼り付けて送信してください。");
+  };
 
   const plans = Array.from(new Set(customers.map(c => c.plan || "未設定")));
 
@@ -54,9 +63,28 @@ export default function Dashboard() {
             <h1>経営管理ダッシュボード</h1>
             <p>ジムの稼働状況と数値をリアルタイムで把握しましょう</p>
           </div>
-          <Link href="/register" className={`btn btn-primary ${styles.btnIcon}`}>
-            <UserPlus size={18} /> 新規顧客登録URL
-          </Link>
+        </div>
+
+        {/* お客様共有用セクション */}
+        <div className={`card ${styles.shareCard}`}>
+          <div className={styles.shareInfo}>
+            <div className={styles.shareText}>
+              <h3>お客様用カウンセリングシート</h3>
+              <p>新規のお客様には、以下のURLまたはQRコードを案内してください。</p>
+              <div className={styles.urlBox}>
+                <code>{regUrl}</code>
+                <button onClick={handleCopy} className="btn btn-secondary">コピー</button>
+              </div>
+            </div>
+            <div className={styles.qrBox}>
+              <img 
+                src={`https://chart.googleapis.com/chart?chs=120x120&cht=qr&chl=${encodeURIComponent(regUrl)}&choe=UTF-8`} 
+                alt="Registration QR Code" 
+                className={styles.qrImg}
+              />
+              <span>案内用QRコード</span>
+            </div>
+          </div>
         </div>
 
         {stats && (

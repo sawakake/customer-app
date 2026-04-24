@@ -206,3 +206,84 @@
   text-align: center;
   color: var(--secondary-foreground);
 }
+.shareCard {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(to right, #eff6ff, #ffffff);
+  border: 1px solid #dbeafe;
+}
+
+.shareInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.shareText {
+  flex: 1;
+}
+
+.shareText h3 {
+  margin-bottom: 0.5rem;
+  color: var(--primary);
+  font-size: 1.25rem;
+}
+
+.shareText p {
+  font-size: 0.9rem;
+  color: var(--secondary-foreground);
+  margin-bottom: 1rem;
+}
+
+.urlBox {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  background: white;
+  padding: 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.urlBox code {
+  flex: 1;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--foreground);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.qrBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid #dbeafe;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.qrImg {
+  width: 120px;
+  height: 120px;
+}
+
+.qrBox span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--secondary-foreground);
+}
+
+@media (max-width: 768px) {
+  .shareInfo {
+    flex-direction: column;
+    text-align: center;
+  }
+  .urlBox {
+    flex-direction: column;
+  }
+}
