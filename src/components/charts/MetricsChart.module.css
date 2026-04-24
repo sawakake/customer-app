@@ -5,6 +5,13 @@
   height: 500px;
 }
 
+@media (max-width: 768px) {
+  .container {
+    height: 350px;
+    gap: 1rem;
+  }
+}
+
 .controls {
   display: flex;
   flex-direction: column;

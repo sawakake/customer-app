@@ -145,6 +145,31 @@
   border-radius: 50%;
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .searchSection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchBox {
+    max-width: none;
+  }
+
+  .filterBox {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .customerGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .loading, .empty {
   padding: 4rem;
   text-align: center;

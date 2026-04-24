@@ -10,3 +10,9 @@
   overflow-y: auto;
   position: relative;
 }
+
+@media (max-width: 1023px) {
+  .main {
+    padding-top: 60px;
+  }
+}
