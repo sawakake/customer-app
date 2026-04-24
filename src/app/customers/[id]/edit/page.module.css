@@ -1,0 +1,52 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.backLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--secondary-foreground);
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: 1.75rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.textarea {
+  min-height: 100px;
+}
+
+.footer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.saveBtn {
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.loading {
+  padding: 4rem;
+  text-align: center;
+  color: var(--secondary-foreground);
+}

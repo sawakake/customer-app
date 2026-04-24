@@ -1,0 +1,208 @@
+.dashboardLayout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background);
+}
+
+.mainContent {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.greeting h1 {
+  font-size: 1.75rem;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+}
+
+.greeting p {
+  color: var(--secondary-foreground);
+}
+
+.btnIcon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.kpiCard {
+  padding: 1.5rem;
+  border-left: 4px solid var(--primary);
+  text-decoration: none;
+  display: block;
+}
+
+.clickable {
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-left-width: 6px;
+}
+
+.kpiLabel {
+  font-size: 0.85rem;
+  color: var(--secondary-foreground);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.kpiValue {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--foreground);
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.subText {
+  font-size: 1.1rem;
+  color: var(--secondary-foreground);
+  font-weight: 500;
+}
+
+.kpiDetail {
+  font-size: 0.8rem;
+  color: var(--secondary-foreground);
+}
+
+.highlight {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.searchBox {
+  position: relative;
+  width: 300px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--secondary-foreground);
+}
+
+.searchBox input {
+  width: 100%;
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--background);
+}
+
+.customerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1rem;
+}
+
+.customerCard {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+}
+
+.customerCard:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+.customerInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avatarMini {
+  width: 40px;
+  height: 40px;
+  background: var(--secondary);
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.customerInfo h3 {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.planLabel {
+  font-size: 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+}
+
+.customerMeta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--secondary-foreground);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.arrow {
+  color: var(--secondary-foreground);
+  opacity: 0.5;
+}
+
+.loading, .empty {
+  padding: 3rem;
+  text-align: center;
+  color: var(--secondary-foreground);
+}

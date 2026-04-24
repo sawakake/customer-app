@@ -1,0 +1,84 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f2f5;
+  background-image: radial-gradient(var(--primary-rgb), transparent 0.5px);
+  background-size: 20px 20px;
+  padding: 1rem;
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 400px;
+  background: var(--card);
+  padding: 2.5rem;
+  border-radius: var(--radius);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.iconWrapper {
+  width: 64px;
+  height: 64px;
+  background: var(--background);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  border: 1px solid var(--border);
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.header p {
+  color: var(--secondary-foreground);
+  font-size: 0.875rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.inputGroup label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 0.875rem;
+  font-size: 1rem;
+}
+
+.errorMessage {
+  background: #fef2f2;
+  color: var(--destructive);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #fee2e2;
+  text-align: center;
+}
+
+.footer {
+  margin-top: 2rem;
+  text-align: center;
+  color: var(--secondary-foreground);
+  font-size: 0.75rem;
+}

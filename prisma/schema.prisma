@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Staff {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // ハッシュ化して保存
+  name      String
+  role      String   @default("admin") // 将来の権限分け用
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id                String    @id @default(uuid())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  name              String
+  furigana          String
+  gender            String
+  dob               DateTime
+  postalCode        String
+  address           String
+  phone             String
+
+  emergencyPhone    String
+  emergencyName     String
+  emergencyRelation String
+
+  plan              String?   @default("未設定") // プラン分け用
+  status            String    @default("入会済み") // 体験のみ / 入会済み / 休会中 など
+
+  complaint         String?   // 解決したい身体の悩み
+  idealState        String?   // 求める理想の状態
+  desiredServices   String?   // あったらいいなと思うサービス・物
+
+  metrics           Metric[]
+  goals             Goal[]
+  sessions          Session[]
+}
+
+model Metric {
+  id                  String   @id @default(uuid())
+  createdAt           DateTime @default(now())
+  customer            Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId          String
+  date                DateTime @default(now())
+
+  // セッション計測スコア
+  weight              Float?
+  bloodPressure       String?  // 例: "120/80"
+
+  // 月1回身体計測
+  waist               Float?
+  belly               Float?
+  armL                Float?
+  armR                Float?
+  thighL              Float?
+  thighR              Float?
+  calfL               Float?
+  calfR               Float?
+
+  // 健康診断フィードバック
+  bloodTestFeedback   String?
+}
+
+model Goal {
+  id               String   @id @default(uuid())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId       String
+
+  longTermPurpose  String   // 目的
+  monthlyGoal      String   // 今月の目標
+  month            String   // YYYY-MM形式など
+}
+
+model Session {
+  id                 String   @id @default(uuid())
+  createdAt          DateTime @default(now())
+  customer           Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId         String
+  date               DateTime @default(now())
+  
+  duration           Int      @default(60) // 60分 / 90分
+  type               String   @default("通常") // 通常 / 体験
+
+  // コンディション
+  conditionSelf      String?  // 自己申告
+  conditionObjective String?  // 他者評価（身体的・精神的）
+
+  // トレーニング内容
+  routines           String?  // 内容、回数などテキストで記録
+  homework           String?  // 出した宿題
+  conversation       String?  // 会話音声要約または生メモ
+
+  // AI機能管理
+  aiSummary          String?  // AIによる会話要約
+  aiAdvice           String?  // AIによる目標達成のためのアドバイス
+  clientMotivation   String?  // AIによる顧客動向（最近のモチベーション等）分析
+}

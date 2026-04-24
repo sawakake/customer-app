@@ -1,0 +1,104 @@
+.recorderContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.visualizer {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  border: 4px solid var(--secondary);
+}
+
+.icon {
+  width: 32px;
+  height: 32px;
+  color: var(--secondary-foreground);
+}
+
+.recordingIcon {
+  width: 32px;
+  height: 32px;
+  color: var(--destructive);
+  position: relative;
+  z-index: 2;
+}
+
+.pulseContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pulse {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: var(--destructive);
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.recordBtn {
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+}
+
+.stopBtn {
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  background-color: var(--destructive);
+  color: white;
+}
+
+.stopBtn:hover {
+  background-color: #dc2626;
+}
+
+.status {
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--secondary-foreground);
+  text-align: center;
+  max-width: 300px;
+}
