@@ -42,7 +42,7 @@ export default function ShareFormModal({ isOpen, onClose }: { isOpen: boolean, o
             {origin && (
               <div className={styles.qrWrapper}>
                 <img 
-                  src={`https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(regUrl)}&choe=UTF-8`} 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(regUrl)}&color=1a1a1a&bgcolor=ffffff`}
                   alt="QR Code"
                   className={styles.qrImage}
                 />

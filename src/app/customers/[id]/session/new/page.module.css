@@ -1,5 +1,9 @@
+/* =========================================
+   セッション記録ページ スタイル
+   ========================================= */
+
 .container {
-  padding: 2rem;
+  padding: 1.5rem 2rem;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -15,56 +19,414 @@
   color: var(--secondary-foreground);
   margin-bottom: 1rem;
   font-size: 0.9rem;
+  text-decoration: none;
 }
 
 .title {
-  font-size: 1.75rem;
+  font-size: 1.6rem;
   color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .layout {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 2rem;
+  align-items: start;
 }
 
 @media (max-width: 1024px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
+  .layout { grid-template-columns: 1fr; }
 }
 
-.section {
-  margin-bottom: 2rem;
+@media (max-width: 600px) {
+  .container { padding: 1rem; }
+  .title { font-size: 1.2rem; }
+}
+
+.section { margin-bottom: 2rem; }
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
 .sectionTitle {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.aiIcon {
-  color: var(--primary);
+.aiIcon { color: var(--primary); }
+.icon { color: var(--primary); }
+
+.sessionMetaInputs {
+  display: flex;
+  gap: 0.5rem;
 }
 
+/* ===== 計測行 ===== */
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  margin-bottom: 0.5rem;
 }
-
 @media (max-width: 480px) {
-  .row {
-    grid-template-columns: 1fr;
-  }
+  .row { grid-template-columns: 1fr; }
 }
 
-.textarea {
-  min-height: 120px;
-  resize: vertical;
+/* ===== サイズ計測 ===== */
+.details {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.summaryLabel {
+  font-size: 0.9rem;
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.sizeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--background);
+  border-radius: var(--radius);
+}
+
+/* =========================================
+   姿勢写真
+   ========================================= */
+.photoSection {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.photoSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--foreground);
+}
+
+.photoRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+@media (max-width: 600px) {
+  .photoRow { grid-template-columns: 1fr; }
+}
+
+.photoGroup {}
+
+.photoGroupTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.75rem;
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+/* 写真プレースホルダー（タップで選択） */
+.photoPlaceholder {
+  aspect-ratio: 3/4;
+  background: var(--secondary);
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--secondary-foreground);
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+  width: 100%;
+}
+
+.photoPlaceholder:hover {
+  border-color: var(--primary);
+  background: white;
+  color: var(--primary);
+}
+
+/* 写真プレビュー */
+.photoSlot { position: relative; }
+
+.photoPreview {
+  position: relative;
+  aspect-ratio: 3/4;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid var(--primary);
+}
+
+.photoPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoRemove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.helpText {
+  font-size: 0.72rem;
+  color: var(--secondary-foreground);
+  margin-top: 0.75rem;
+  text-align: center;
+}
+
+/* =========================================
+   トレーニングメニュー（アコーディオン）
+   ========================================= */
+.menuList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* 種目カード */
+.menuCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--card);
+  transition: box-shadow 0.2s;
+}
+
+.menuCard:has(.menuCardBody) {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* ヘッダー（タップで開閉） */
+.menuCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  background: var(--secondary);
+  user-select: none;
+}
+
+.menuCardLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.menuTypeBadge {
+  background: var(--primary);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.stretchBadge {
+  background: #4facfe;
+}
+
+.menuCardName {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menuCardMeta {
+  font-size: 0.78rem;
+  color: var(--secondary-foreground);
+  flex-shrink: 0;
+}
+
+.menuCardActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  color: var(--secondary-foreground);
+}
+
+.menuDeleteBtn {
+  background: none;
+  border: none;
+  color: #e57373;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+}
+
+.menuDeleteBtn:hover { background: #fef2f2; }
+
+/* アコーディオン本体 */
+.menuCardBody {
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.menuTopRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* セット数コントロール */
+.setsRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.setsLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--secondary-foreground);
+  white-space: nowrap;
+}
+
+.setsCounter {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.setsBtn {
+  width: 36px;
+  height: 36px;
+  background: var(--secondary);
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.setsBtn:hover { background: var(--border); }
+
+.setsNum {
+  min-width: 40px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+
+/* セットごとの回数 */
+.repsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+}
+
+.repItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.repLabel {
+  font-size: 0.68rem;
+  color: var(--secondary-foreground);
+  font-weight: 600;
+  text-align: center;
+}
+
+.repInputRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.repInput {
+  text-align: center;
+  padding: 6px 4px !important;
+  min-width: 0;
+  flex: 1;
+}
+
+.repUnit {
+  font-size: 0.75rem;
+  color: var(--secondary-foreground);
+  flex-shrink: 0;
+}
+
+/* 追加ボタン */
+.addMenuBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 1.5rem;
+}
+
+/* ===== テキストエリア群 ===== */
+.textareaGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .textareaSmall {
@@ -72,6 +434,7 @@
   resize: vertical;
 }
 
+/* ===== 保存ボタン ===== */
 .saveBtn {
   width: 100%;
   margin-top: 2rem;
@@ -79,9 +442,10 @@
   font-size: 1.1rem;
 }
 
+/* ===== AIカード（右カラム） ===== */
 .aiCard {
-  background: linear-gradient(135deg, var(--card), rgba(59, 130, 246, 0.05));
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: linear-gradient(135deg, var(--card), rgba(255, 138, 0, 0.05));
+  border: 1px solid rgba(255, 138, 0, 0.2);
   position: sticky;
   top: 90px;
 }
@@ -94,133 +458,21 @@
   font-size: 1.1rem;
 }
 
-.aiItem {
-  margin-bottom: 1.5rem;
-}
+.aiContent {}
+
+.aiItem { margin-bottom: 1.5rem; }
 
 .aiItem h4 {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--secondary-foreground);
   margin-bottom: 0.5rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .aiItem p {
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.details {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-}
-
-.summaryLabel {
   font-size: 0.9rem;
-  color: var(--primary);
-  cursor: pointer;
-  font-weight: 500;
-  margin-bottom: 1rem;
-}
-
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.sessionMetaInputs {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.menuList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.menuItemRow {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.photoSection {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
-}
-
-.photoRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-}
-
-.photoCol h4 {
-  font-size: 0.9rem;
-  margin-bottom: 0.75rem;
-  color: var(--primary);
-}
-
-.photoGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-}
-
-.photoDrop {
-  aspect-ratio: 3/4;
-  background: var(--secondary);
-  border: 2px dashed var(--border);
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  color: var(--secondary-foreground);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.photoDrop:hover {
-  border-color: var(--primary);
-  background: white;
-}
-
-.helpText {
-  font-size: 0.7rem;
-  color: var(--secondary-foreground);
-  margin-top: 0.5rem;
-  text-align: right;
-}
-
-.textareaSmall {
-  height: 80px;
-  resize: vertical;
-}
-
-.lrGroup {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  grid-column: 1 / -1;
-  background: rgba(var(--primary-rgb), 0.03);
-  padding: 0.75rem;
-  border-radius: var(--radius);
-  border: 1px dashed var(--border);
-}
-
-.sizeGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-  padding: 1rem;
-  background: var(--background);
-  border-radius: var(--radius);
+  line-height: 1.7;
+  color: var(--foreground);
 }

@@ -1,40 +1,74 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import VoiceRecorder from "@/components/VoiceRecorder";
-import { ArrowLeft, Save, Sparkles, Activity, Ruler } from "lucide-react";
+import {
+  ArrowLeft, Save, Sparkles, Activity, Ruler,
+  Plus, Trash2, ChevronDown, ChevronUp, Camera, X
+} from "lucide-react";
 import Link from "next/link";
 
+// =============================================
+// 型定義
+// =============================================
+interface MenuItem {
+  name: string;
+  type: "トレーニング" | "ストレッチ";
+  sets: number;
+  reps: string;       // 例: "10,10,12"（セットごとカンマ区切り）
+  weight: string;
+  note: string;
+  isOpen: boolean;    // アコーディオン開閉
+}
+
+interface PhotoSlot {
+  file: File | null;
+  preview: string | null;
+  label: string;
+  timing: "Before" | "After";
+  viewType: "Front" | "Side" | "Other";
+}
+
+// =============================================
+// 写真スロット初期値
+// =============================================
+const makePhotoSlots = (): PhotoSlot[] => [
+  { file: null, preview: null, label: "Before 正面", timing: "Before", viewType: "Front" },
+  { file: null, preview: null, label: "Before 横",  timing: "Before", viewType: "Side"  },
+  { file: null, preview: null, label: "Before その他", timing: "Before", viewType: "Other" },
+  { file: null, preview: null, label: "After 正面",  timing: "After",  viewType: "Front" },
+  { file: null, preview: null, label: "After 横",   timing: "After",  viewType: "Side"  },
+  { file: null, preview: null, label: "After その他", timing: "After",  viewType: "Other" },
+];
+
+// =============================================
+// メインコンポーネント
+// =============================================
 export default function NewSessionPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const customerId = params.id as string;
-  const isMonthlyMode = searchParams.get('type') === 'monthly';
-  
+  const isMonthlyMode = searchParams.get("type") === "monthly";
+
   const [isSaving, setIsSaving] = useState(false);
   const [customerName, setCustomerName] = useState("");
 
-  // Form State
+  // ---------- フォーム ----------
   const [sessionForm, setSessionForm] = useState({
     weight: "",
     bloodPressureHigh: "",
     bloodPressureLow: "",
     duration: "60",
     type: "通常",
-    waist: "",
-    belly: "",
-    armL: "",
-    armR: "",
-    thighL: "",
-    thighR: "",
-    calfL: "",
-    calfR: "",
+    waist: "", belly: "",
+    armL: "", armR: "",
+    thighL: "", thighR: "",
+    calfL: "", calfR: "",
     conditionSelf: "良好",
     conditionObjective: "",
-    routines: "", // 旧
     homework: "",
     summary: "",
     motivation: "",
@@ -42,85 +76,213 @@ export default function NewSessionPage() {
     freeNote: "",
   });
 
-  const [menuItems, setMenuItems] = useState<any[]>([
-    { name: "", type: "トレーニング", sets: 3, reps: "", weight: "", note: "" }
+  // ---------- メニュー項目（アコーディオン） ----------
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([
+    { name: "", type: "トレーニング", sets: 3, reps: "", weight: "", note: "", isOpen: true },
   ]);
 
-  const [photos, setPhotos] = useState<any>({
-    before: { front: null, side: null, other: null },
-    after: { front: null, side: null, other: null }
-  });
+  // ---------- 姿勢写真スロット ----------
+  const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>(makePhotoSlots());
 
+  // ---------- 顧客名取得 ----------
   useEffect(() => {
-    // Fetch customer name for the header
-    fetch(`/api/customers`)
-      .then(res => res.json())
+    fetch("/api/customers")
+      .then(r => r.json())
       .then(data => {
-        const customer = data.find((c: any) => c.id === customerId);
-        if (customer) setCustomerName(customer.name);
+        const c = data.find((c: any) => c.id === customerId);
+        if (c) setCustomerName(c.name);
       });
   }, [customerId]);
 
+  // =============================================
+  // AI 分析結果受け取り
+  // =============================================
   const handleAIAnalysis = (aiData: any) => {
-    // AIからの解析結果をメニュー等に反映
     setSessionForm(prev => ({
       ...prev,
-      summary: aiData.summary || prev.summary,
+      summary:    aiData.summary    || prev.summary,
       motivation: aiData.motivation || prev.motivation,
-      advice: aiData.advice || prev.advice,
-      homework: aiData.homework || prev.homework,
+      advice:     aiData.advice     || prev.advice,
+      homework:   aiData.homework   || prev.homework,
     }));
-
-    if (aiData.menuItems && aiData.menuItems.length > 0) {
-      setMenuItems(aiData.menuItems);
+    if (aiData.menuItems?.length > 0) {
+      setMenuItems(aiData.menuItems.map((m: any) => ({ ...m, isOpen: true })));
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setSessionForm({ ...sessionForm, [e.target.name]: e.target.value });
+    setSessionForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // =============================================
+  // メニュー操作
+  // =============================================
   const addMenuItem = () => {
-    setMenuItems([...menuItems, { name: "", type: "トレーニング", sets: 3, reps: "", weight: "", note: "" }]);
+    setMenuItems(prev => [
+      ...prev,
+      { name: "", type: "トレーニング", sets: 3, reps: "", weight: "", note: "", isOpen: true },
+    ]);
   };
 
-  const updateMenuItem = (index: number, field: string, value: any) => {
-    const newItems = [...menuItems];
-    newItems[index][field] = value;
-    setMenuItems(newItems);
+  const removeMenuItem = (index: number) => {
+    setMenuItems(prev => prev.filter((_, i) => i !== index));
   };
 
+  const updateMenuItem = (index: number, field: keyof MenuItem, value: any) => {
+    setMenuItems(prev => {
+      const next = [...prev];
+      (next[index] as any)[field] = value;
+      return next;
+    });
+  };
+
+  const toggleMenuItem = (index: number) => {
+    updateMenuItem(index, "isOpen", !menuItems[index].isOpen);
+  };
+
+  // repsをセット数に合わせて自動調整するヘルパー
+  const updateSets = (index: number, sets: number) => {
+    const current = menuItems[index].reps.split(",").map(s => s.trim());
+    const newReps = Array.from({ length: sets }, (_, i) => current[i] || "10").join(",");
+    setMenuItems(prev => {
+      const next = [...prev];
+      next[index] = { ...next[index], sets, reps: newReps };
+      return next;
+    });
+  };
+
+  const updateRep = (menuIndex: number, setIndex: number, value: string) => {
+    const reps = menuItems[menuIndex].reps.split(",").map(s => s.trim());
+    reps[setIndex] = value;
+    updateMenuItem(menuIndex, "reps", reps.join(","));
+  };
+
+  // =============================================
+  // 写真スロット操作
+  // =============================================
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const handlePhotoSelect = (slotIndex: number, file: File | null) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setPhotoSlots(prev => {
+        const next = [...prev];
+        next[slotIndex] = { ...next[slotIndex], file, preview: e.target?.result as string };
+        return next;
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearPhoto = (slotIndex: number) => {
+    setPhotoSlots(prev => {
+      const next = [...prev];
+      next[slotIndex] = { ...next[slotIndex], file: null, preview: null };
+      return next;
+    });
+    if (fileInputRefs.current[slotIndex]) {
+      fileInputRefs.current[slotIndex]!.value = "";
+    }
+  };
+
+  // =============================================
+  // 保存処理
+  // =============================================
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    
+
     try {
+      // 写真をBase64で収集（将来的にはBlob APIへのアップロードに切り替え可能）
+      const photosPayload = photoSlots
+        .filter(s => s.preview)
+        .map(s => ({
+          timing:   s.timing,
+          viewType: s.viewType,
+          url:      s.preview, // Base64 or URL
+        }));
+
       const res = await fetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerId,
           ...sessionForm,
-          menuItems,
-          // 写真データは本来S3等に上げるが、今回はJSONの一部として（構造のみ）
-          photos,
+          menuItems: menuItems.map(({ isOpen, ...m }) => m),
+          photos: photosPayload,
           type: isMonthlyMode ? "計測のみ" : sessionForm.type,
           duration: isMonthlyMode ? 0 : parseInt(sessionForm.duration),
         }),
       });
-      
+
       if (res.ok) {
         router.push(`/customers/${customerId}`);
         router.refresh();
       } else {
         alert("保存に失敗しました。");
       }
-    } catch (error) {
+    } catch {
       alert("エラーが発生しました。");
     } finally {
       setIsSaving(false);
     }
   };
+
+  // =============================================
+  // レンダリング
+  // =============================================
+  const beforeSlots = photoSlots.filter(s => s.timing === "Before");
+  const afterSlots  = photoSlots.filter(s => s.timing === "After");
+
+  const renderPhotoGroup = (slots: PhotoSlot[], timing: "Before" | "After") => (
+    <div className={styles.photoGroup}>
+      <h4 className={styles.photoGroupTitle}>
+        <Camera size={16} />
+        {timing === "Before" ? "【Before】トレーニング前" : "【After】トレーニング後"}
+      </h4>
+      <div className={styles.photoGrid}>
+        {slots.map((slot, si) => {
+          const globalIndex = photoSlots.findIndex(
+            s => s.timing === slot.timing && s.viewType === slot.viewType
+          );
+          return (
+            <div key={si} className={styles.photoSlot}>
+              {slot.preview ? (
+                <div className={styles.photoPreview}>
+                  <img src={slot.preview} alt={slot.label} />
+                  <button
+                    type="button"
+                    className={styles.photoRemove}
+                    onClick={() => clearPhoto(globalIndex)}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.photoPlaceholder}
+                  onClick={() => fileInputRefs.current[globalIndex]?.click()}
+                >
+                  <Camera size={20} />
+                  <span>{slot.label.replace(`${timing} `, "")}</span>
+                </button>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                style={{ display: "none" }}
+                ref={el => { fileInputRefs.current[globalIndex] = el; }}
+                onChange={e => handlePhotoSelect(globalIndex, e.target.files?.[0] ?? null)}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <div className={styles.container}>
@@ -129,18 +291,20 @@ export default function NewSessionPage() {
           <ArrowLeft size={18} /> 戻る
         </Link>
         <h1 className={styles.title}>
-          {isMonthlyMode ? <Ruler size={32} /> : null}
-          {isMonthlyMode ? '月次身体データ計測' : '今日のセッション記録'}: {customerName} 様
+          {isMonthlyMode ? <Ruler size={28} /> : <Activity size={28} />}
+          {isMonthlyMode ? "月次身体データ計測" : "今日のセッション記録"}: {customerName} 様
         </h1>
       </div>
 
       <div className={styles.layout}>
         <div className={styles.leftCol}>
+
+          {/* AI録音アシスト */}
           {!isMonthlyMode && (
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
-                  <Sparkles className={styles.aiIcon} /> AI アシスト録音（会話から種目を自動抽出）
+                  <Sparkles className={styles.aiIcon} /> AI アシスト録音
                 </h2>
                 <div className={styles.sessionMetaInputs}>
                   <select name="type" className="input-sm" value={sessionForm.type} onChange={handleChange}>
@@ -158,25 +322,30 @@ export default function NewSessionPage() {
           )}
 
           <form onSubmit={handleSave}>
+
+            {/* ===== 計測・コンディション ===== */}
             <div className="card">
               <h2 className={styles.sectionTitle}>
-                <Activity size={20} className={styles.icon} /> 今日の計測・コンディション
+                <Activity size={20} className={styles.icon} /> 計測・コンディション
               </h2>
               <div className={styles.row}>
                 <div className="form-group">
                   <label>体重 (kg)</label>
-                  <input type="number" step="0.1" name="weight" className="input" value={sessionForm.weight} onChange={handleChange} placeholder="0.0" />
+                  <input type="number" step="0.1" name="weight" className="input"
+                    value={sessionForm.weight} onChange={handleChange} placeholder="0.0" />
                 </div>
                 <div className="form-group" style={{ flex: 2 }}>
-                  <label>血圧 (最高 / 最低)</label>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <input type="number" name="bloodPressureHigh" className="input" value={sessionForm.bloodPressureHigh} onChange={handleChange} placeholder="上" />
+                  <label>血圧（上 / 下）</label>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    <input type="number" name="bloodPressureHigh" className="input"
+                      value={sessionForm.bloodPressureHigh} onChange={handleChange} placeholder="上" />
                     <span>/</span>
-                    <input type="number" name="bloodPressureLow" className="input" value={sessionForm.bloodPressureLow} onChange={handleChange} placeholder="下" />
+                    <input type="number" name="bloodPressureLow" className="input"
+                      value={sessionForm.bloodPressureLow} onChange={handleChange} placeholder="下" />
                   </div>
                 </div>
               </div>
-              
+
               {!isMonthlyMode && (
                 <div className={styles.row}>
                   <div className="form-group">
@@ -190,187 +359,224 @@ export default function NewSessionPage() {
                   </div>
                   <div className="form-group">
                     <label>トレーナー評価</label>
-                    <input type="text" name="conditionObjective" className="input" value={sessionForm.conditionObjective} onChange={handleChange} placeholder="例）動きが良い" />
+                    <input type="text" name="conditionObjective" className="input"
+                      value={sessionForm.conditionObjective} onChange={handleChange}
+                      placeholder="例）動きが良い" />
                   </div>
                 </div>
               )}
 
-              {/* 写真添付セクション */}
+              {/* ===== 姿勢写真アップロード ===== */}
               {!isMonthlyMode && (
                 <div className={styles.photoSection}>
+                  <h3 className={styles.photoSectionTitle}>
+                    <Camera size={18} /> 姿勢写真（Before / After）
+                  </h3>
                   <div className={styles.photoRow}>
-                    <div className={styles.photoCol}>
-                      <h4>【Before】姿勢写真</h4>
-                      <div className={styles.photoGrid}>
-                        <div className={styles.photoDrop}><span>前</span></div>
-                        <div className={styles.photoDrop}><span>横</span></div>
-                        <div className={styles.photoDrop}><span>他</span></div>
-                      </div>
-                    </div>
-                    <div className={styles.photoCol}>
-                      <h4>【After】姿勢写真</h4>
-                      <div className={styles.photoGrid}>
-                        <div className={styles.photoDrop}><span>前</span></div>
-                        <div className={styles.photoDrop}><span>横</span></div>
-                        <div className={styles.photoDrop}><span>他</span></div>
-                      </div>
-                    </div>
+                    {renderPhotoGroup(beforeSlots, "Before")}
+                    {renderPhotoGroup(afterSlots, "After")}
                   </div>
-                  <p className={styles.helpText}>※写真は保存後にAI姿勢分析が実行されます</p>
+                  <p className={styles.helpText}>タップして写真を選択（カメラ撮影・ライブラリ両方対応）</p>
                 </div>
               )}
 
+              {/* 身体サイズ計測 */}
               <details className={styles.details} open={isMonthlyMode}>
                 <summary className={styles.summaryLabel}>
-                  {isMonthlyMode ? '身体サイズを入力してください' : '身体サイズ計測の入力（月一計測など）'}
+                  {isMonthlyMode ? "身体サイズを入力" : "身体サイズ計測（月1回）"}
                 </summary>
                 <div className={styles.sizeGrid}>
-                  <div className="form-group">
-                    <label>ウエスト (cm)</label>
-                    <input type="number" step="0.1" name="waist" className="input" value={sessionForm.waist} onChange={handleChange} placeholder="0.0" />
-                  </div>
-                  <div className="form-group">
-                    <label>へそ周り (cm)</label>
-                    <input type="number" step="0.1" name="belly" className="input" value={sessionForm.belly} onChange={handleChange} placeholder="0.0" />
-                  </div>
-                  <div className={styles.lrGroup}>
-                    <div className="form-group">
-                      <label>二の腕 左 (cm)</label>
-                      <input type="number" step="0.1" name="armL" className="input" value={sessionForm.armL} onChange={handleChange} placeholder="0.0" />
+                  {[
+                    ["ウエスト", "waist"], ["へそ周り", "belly"],
+                    ["二の腕 左", "armL"], ["二の腕 右", "armR"],
+                    ["太もも 左", "thighL"], ["太もも 右", "thighR"],
+                    ["ふくらはぎ 左", "calfL"], ["ふくらはぎ 右", "calfR"],
+                  ].map(([label, name]) => (
+                    <div key={name} className="form-group">
+                      <label>{label} (cm)</label>
+                      <input type="number" step="0.1" name={name} className="input"
+                        value={(sessionForm as any)[name]} onChange={handleChange} placeholder="0.0" />
                     </div>
-                    <div className="form-group">
-                      <label>二の腕 右 (cm)</label>
-                      <input type="number" step="0.1" name="armR" className="input" value={sessionForm.armR} onChange={handleChange} placeholder="0.0" />
-                    </div>
-                  </div>
-                  <div className={styles.lrGroup}>
-                    <div className="form-group">
-                      <label>太もも 左 (cm)</label>
-                      <input type="number" step="0.1" name="thighL" className="input" value={sessionForm.thighL} onChange={handleChange} placeholder="0.0" />
-                    </div>
-                    <div className="form-group">
-                      <label>太もも 右 (cm)</label>
-                      <input type="number" step="0.1" name="thighR" className="input" value={sessionForm.thighR} onChange={handleChange} placeholder="0.0" />
-                    </div>
-                  </div>
-                  <div className={styles.lrGroup}>
-                    <div className="form-group">
-                      <label>ふくらはぎ 左 (cm)</label>
-                      <input type="number" step="0.1" name="calfL" className="input" value={sessionForm.calfL} onChange={handleChange} placeholder="0.0" />
-                    </div>
-                    <div className="form-group">
-                      <label>ふくらはぎ 右 (cm)</label>
-                      <input type="number" step="0.1" name="calfR" className="input" value={sessionForm.calfR} onChange={handleChange} placeholder="0.0" />
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </details>
             </div>
 
+            {/* ===== トレーニング・ストレッチ メニュー ===== */}
             {!isMonthlyMode && (
-              <div className="card" style={{ marginTop: '1.5rem' }}>
-                <h2 className={styles.sectionTitle}>トレーニング・ストレッチ項目</h2>
-                
+              <div className="card" style={{ marginTop: "1.5rem" }}>
+                <h2 className={styles.sectionTitle}>トレーニング・ストレッチ</h2>
+
                 <div className={styles.menuList}>
-                  {menuItems.map((item, index) => (
-                    <div key={index} className={styles.menuItemRow}>
-                      <select 
-                        className="input-sm" 
-                        value={item.type} 
-                        onChange={(e) => updateMenuItem(index, 'type', e.target.value)}
-                      >
-                        <option value="トレーニング">トレ</option>
-                        <option value="ストレッチ">スト</option>
-                      </select>
-                      <input 
-                        type="text" 
-                        className="input" 
-                        value={item.name} 
-                        onChange={(e) => updateMenuItem(index, 'name', e.target.value)}
-                        placeholder="種目名" 
-                        style={{ flex: 2 }}
-                      />
-                      <input 
-                        type="number" 
-                        className="input" 
-                        value={item.sets} 
-                        onChange={(e) => updateMenuItem(index, 'sets', parseInt(e.target.value))}
-                        placeholder="Set" 
-                      />
-                      <input 
-                        type="text" 
-                        className="input" 
-                        value={item.reps} 
-                        onChange={(e) => updateMenuItem(index, 'reps', e.target.value)}
-                        placeholder="回数" 
-                      />
-                      <input 
-                        type="text" 
-                        className="input" 
-                        value={item.weight} 
-                        onChange={(e) => updateMenuItem(index, 'weight', e.target.value)}
-                        placeholder="重さ" 
-                      />
-                    </div>
-                  ))}
-                  <button type="button" onClick={addMenuItem} className="btn btn-secondary btn-sm" style={{ width: '100%' }}>
-                    + 項目を追加
-                  </button>
+                  {menuItems.map((item, idx) => {
+                    const repsArr = item.reps
+                      ? item.reps.split(",").map(s => s.trim())
+                      : Array(item.sets).fill("");
+
+                    return (
+                      <div key={idx} className={styles.menuCard}>
+                        {/* アコーディオンヘッダー */}
+                        <div
+                          className={styles.menuCardHeader}
+                          onClick={() => toggleMenuItem(idx)}
+                          role="button"
+                        >
+                          <div className={styles.menuCardLeft}>
+                            <span className={`${styles.menuTypeBadge} ${item.type === "ストレッチ" ? styles.stretchBadge : ""}`}>
+                              {item.type === "トレーニング" ? "筋トレ" : "スト"}
+                            </span>
+                            <span className={styles.menuCardName}>
+                              {item.name || `種目 ${idx + 1}`}
+                            </span>
+                            {!item.isOpen && item.sets > 0 && (
+                              <span className={styles.menuCardMeta}>
+                                {item.sets}セット
+                                {item.weight ? ` / ${item.weight}` : ""}
+                              </span>
+                            )}
+                          </div>
+                          <div className={styles.menuCardActions}>
+                            <button
+                              type="button"
+                              className={styles.menuDeleteBtn}
+                              onClick={e => { e.stopPropagation(); removeMenuItem(idx); }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                            {item.isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                          </div>
+                        </div>
+
+                        {/* アコーディオン本体 */}
+                        {item.isOpen && (
+                          <div className={styles.menuCardBody}>
+                            {/* タイプ・種目名・重量 */}
+                            <div className={styles.menuTopRow}>
+                              <select
+                                className="input-sm"
+                                value={item.type}
+                                onChange={e => updateMenuItem(idx, "type", e.target.value)}
+                              >
+                                <option value="トレーニング">筋トレ</option>
+                                <option value="ストレッチ">ストレッチ</option>
+                              </select>
+                              <input
+                                type="text"
+                                className="input"
+                                value={item.name}
+                                onChange={e => updateMenuItem(idx, "name", e.target.value)}
+                                placeholder="種目名（例：スクワット）"
+                                style={{ flex: 2 }}
+                              />
+                              <input
+                                type="text"
+                                className="input"
+                                value={item.weight}
+                                onChange={e => updateMenuItem(idx, "weight", e.target.value)}
+                                placeholder="重量（例：20kg）"
+                              />
+                            </div>
+
+                            {/* セット数 */}
+                            <div className={styles.setsRow}>
+                              <label className={styles.setsLabel}>セット数</label>
+                              <div className={styles.setsCounter}>
+                                <button type="button" className={styles.setsBtn}
+                                  onClick={() => updateSets(idx, Math.max(1, item.sets - 1))}>−</button>
+                                <span className={styles.setsNum}>{item.sets}</span>
+                                <button type="button" className={styles.setsBtn}
+                                  onClick={() => updateSets(idx, item.sets + 1)}>＋</button>
+                              </div>
+                            </div>
+
+                            {/* セットごとの回数 */}
+                            <div className={styles.repsGrid}>
+                              {Array.from({ length: item.sets }, (_, si) => (
+                                <div key={si} className={styles.repItem}>
+                                  <label className={styles.repLabel}>{si + 1}セット目</label>
+                                  <div className={styles.repInputRow}>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      className={`input ${styles.repInput}`}
+                                      value={repsArr[si] ?? ""}
+                                      onChange={e => updateRep(idx, si, e.target.value)}
+                                      placeholder="10"
+                                    />
+                                    <span className={styles.repUnit}>回</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* メモ */}
+                            <input
+                              type="text"
+                              className="input"
+                              value={item.note}
+                              onChange={e => updateMenuItem(idx, "note", e.target.value)}
+                              placeholder="メモ（フォームの注意点など）"
+                              style={{ marginTop: "0.5rem" }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                  <label>フリー記入欄（内容・気づき）</label>
-                  <textarea 
-                    name="freeNote" 
-                    className={`input ${styles.textareaSmall}`} 
-                    value={sessionForm.freeNote} 
-                    onChange={handleChange}
-                    placeholder="その他の内容はこちらに記入してください"
-                  ></textarea>
-                </div>
+                <button
+                  type="button"
+                  onClick={addMenuItem}
+                  className={`btn btn-secondary ${styles.addMenuBtn}`}
+                >
+                  <Plus size={16} /> 種目を追加
+                </button>
 
-                <div className="form-group">
-                  <label>会話の要約（AI分析結果）</label>
-                  <textarea 
-                    name="summary" 
-                    className={`input ${styles.textareaSmall}`} 
-                    value={sessionForm.summary} 
-                    onChange={handleChange}
-                  ></textarea>
-                </div>
-
-                <div className="form-group">
-                  <label>宿題・次回の課題</label>
-                  <textarea 
-                    name="homework" 
-                    className={`input ${styles.textareaSmall}`} 
-                    value={sessionForm.homework} 
-                    onChange={handleChange}
-                  ></textarea>
+                {/* フリーメモ・AIサマリー・宿題 */}
+                <div className={styles.textareaGroup}>
+                  <div className="form-group">
+                    <label>フリー記入欄</label>
+                    <textarea name="freeNote" className={`input ${styles.textareaSmall}`}
+                      value={sessionForm.freeNote} onChange={handleChange}
+                      placeholder="その他の内容・気づき" />
+                  </div>
+                  <div className="form-group">
+                    <label>セッションの要約（AI自動入力）</label>
+                    <textarea name="summary" className={`input ${styles.textareaSmall}`}
+                      value={sessionForm.summary} onChange={handleChange} />
+                  </div>
+                  <div className="form-group">
+                    <label>宿題・次回の課題</label>
+                    <textarea name="homework" className={`input ${styles.textareaSmall}`}
+                      value={sessionForm.homework} onChange={handleChange} />
+                  </div>
                 </div>
               </div>
             )}
 
             <button type="submit" disabled={isSaving} className={`btn btn-primary ${styles.saveBtn}`}>
-              <Save style={{ marginRight: '0.5rem' }} /> {isSaving ? "保存中..." : "セッションを保存する"}
+              <Save style={{ marginRight: "0.5rem" }} />
+              {isSaving ? "保存中..." : "セッションを保存する"}
             </button>
           </form>
         </div>
 
+        {/* 右カラム: AI分析結果 */}
         {!isMonthlyMode && (
           <div className={styles.rightCol}>
             <div className={`card ${styles.aiCard}`}>
               <h3 className={styles.aiCardTitle}>
-                <Sparkles style={{ marginRight: '0.5rem' }} /> AI アドバイス & 分析
+                <Sparkles style={{ marginRight: "0.5rem" }} /> AI 分析結果
               </h3>
               <div className={styles.aiContent}>
                 <div className={styles.aiItem}>
-                  <h4>推測されるモチベーション</h4>
-                  <p>{sessionForm.motivation || "分析待ち..."}</p>
+                  <h4>モチベーション</h4>
+                  <p>{sessionForm.motivation || "録音後に自動入力されます"}</p>
                 </div>
                 <div className={styles.aiItem}>
-                  <h4>AIからの専門アドバイス</h4>
-                  <p>{sessionForm.advice || "分析待ち..."}</p>
+                  <h4>AIアドバイス</h4>
+                  <p>{sessionForm.advice || "録音後に自動入力されます"}</p>
                 </div>
               </div>
             </div>
