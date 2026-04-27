@@ -60,6 +60,7 @@ function EditSessionPageContent() {
 
   // ---------- フォーム ----------
   const [sessionForm, setSessionForm] = useState({
+    date: "",
     weight: "",
     bloodPressureHigh: "",
     bloodPressureLow: "",
@@ -101,18 +102,19 @@ function EditSessionPageContent() {
       .then(session => {
         if (session && !session.error) {
           setIsMonthlyMode(session.type === "計測のみ" || session.duration === 0);
-          setSessionForm({
+          setSessionForm(prev => ({
+            ...prev,
             date: new Date(session.date).toISOString().slice(0, 16),
             type: session.type,
             duration: session.duration.toString(),
             conditionSelf: session.conditionSelf || "",
             conditionObjective: session.conditionObjective || "",
-            routinesText: session.routinesText || "",
+            freeNote: session.routinesText || "",
             homework: session.homework || "",
-            aiSummary: session.aiSummary || "",
-            aiAdvice: session.aiAdvice || "",
-            clientMotivation: session.clientMotivation || "",
-          });
+            summary: session.aiSummary || "",
+            advice: session.aiAdvice || "",
+            motivation: session.clientMotivation || "",
+          }));
           if (session.menuItems && session.menuItems.length > 0) {
              setMenuItems(session.menuItems.map((m: any) => ({ ...m, isOpen: false })));
           }
@@ -284,11 +286,18 @@ function EditSessionPageContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerId,
-          ...sessionForm,
-          menuItems: menuItems.map(({ isOpen, ...m }) => m),
-          photos: photosPayload,
+          date: sessionForm.date,
           type: isMonthlyMode ? "計測のみ" : sessionForm.type,
           duration: isMonthlyMode ? 0 : parseInt(sessionForm.duration),
+          conditionSelf: sessionForm.conditionSelf,
+          conditionObjective: sessionForm.conditionObjective,
+          homework: sessionForm.homework,
+          aiSummary: sessionForm.summary,
+          aiAdvice: sessionForm.advice,
+          clientMotivation: sessionForm.motivation,
+          routinesText: sessionForm.freeNote,
+          menuItems: menuItems.map(({ isOpen, ...m }) => m),
+          photos: photosPayload,
         }),
       });
 
