@@ -1,0 +1,149 @@
+.container {
+  min-height: 100vh;
+  background: #f8f4ef;
+}
+
+.header {
+  background: white;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #f0e8dc;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.backBtn {
+  color: #555;
+  display: flex;
+  align-items: center;
+}
+
+.pageTitle {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #222;
+  margin: 0;
+}
+
+.saveBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ff8a00;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.typeSelector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.typeBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px;
+  border: 2px solid #eee;
+  border-radius: 16px;
+  background: white;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.typeBtnActive {
+  color: white;
+  border-color: transparent;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #555;
+}
+
+.input {
+  height: 48px;
+  padding: 0 16px;
+  border: 2px solid #f0f0f0;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  outline: none;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: #ff8a00;
+}
+
+.textarea {
+  padding: 16px;
+  border: 2px solid #f0f0f0;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  outline: none;
+  resize: vertical;
+  background: white;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.textarea:focus {
+  border-color: #ff8a00;
+}
+
+.photoPicker {
+  height: 120px;
+  border: 2px dashed #ddd;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #aaa;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: white;
+}
+
+.photoHint {
+  font-size: 0.7rem;
+  color: #ccc;
+}

@@ -24,6 +24,7 @@ export default function RegisterPage() {
     phone1: "",
     phone2: "",
     phone3: "",
+    email: "",
     emergencyPhone1: "",
     emergencyPhone2: "",
     emergencyPhone3: "",
@@ -76,6 +77,7 @@ export default function RegisterPage() {
       postalCode: `${formData.postalCode1}-${formData.postalCode2}`,
       address: formData.address,
       phone: `${formData.phone1}${formData.phone2}${formData.phone3}`,
+      email: formData.email,
       emergencyPhone: `${formData.emergencyPhone1}${formData.emergencyPhone2}${formData.emergencyPhone3}`,
       emergencyName: `${formData.emergencyLastName} ${formData.emergencyFirstName}`,
       emergencyRelation: formData.emergencyRelation,
@@ -205,6 +207,12 @@ export default function RegisterPage() {
               <span>-</span>
               <input required type="tel" name="phone3" className="input" maxLength={4} value={formData.phone3} onChange={handleChange} placeholder="0000" />
             </div>
+          </div>
+
+          <div className="form-group">
+            <label>メールアドレス（ログインIDとして使用します） *</label>
+            <input required type="email" name="email" className="input" value={formData.email} onChange={handleChange} placeholder="example@mail.com" />
+            <p className={styles.inputHint}>※マイページへのログイン時に必要になります。お間違えのないようご入力ください。</p>
           </div>
 
           <h3 className={styles.sectionTitle}>緊急連絡先</h3>

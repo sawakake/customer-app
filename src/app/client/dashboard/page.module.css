@@ -1,0 +1,401 @@
+.container {
+  min-height: 100vh;
+  background: #f8f4ef;
+}
+
+/* ===== Header ===== */
+.header {
+  background: white;
+  border-bottom: 1px solid #f0e8dc;
+  padding: 16px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.headerContent {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerLogo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.brandName {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ff8a00;
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .brandName { display: block; }
+}
+
+.userGreeting {
+  flex: 1;
+}
+
+.welcomeText {
+  font-size: 0.7rem;
+  color: #999;
+  margin: 0;
+}
+
+.userName {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #222;
+  margin: 0;
+}
+
+.logoutBtn {
+  font-size: 0.75rem;
+  color: #aaa;
+  text-decoration: none;
+  padding: 6px 12px;
+  border: 1px solid #eee;
+  border-radius: 20px;
+}
+
+/* ===== Main ===== */
+.main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 20px 16px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ===== Goal Banner ===== */
+.goalBanner {
+  background: linear-gradient(135deg, #ff8a00, #ff6b35);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.goalIcon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.goalLabel {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin: 0 0 4px;
+}
+
+.goalText {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ===== Quick Actions ===== */
+.quickActions {}
+
+.actionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.actionCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 10px;
+  border-radius: 20px;
+  text-decoration: none;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.actionCard:hover {
+  transform: translateY(-4px);
+}
+
+.mealCard { background: linear-gradient(135deg, #f6d365, #fda085); }
+.workoutCard { background: linear-gradient(135deg, #ff8a00, #ff5f40); }
+.diaryCard { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
+
+/* ===== Section ===== */
+.section {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #222;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.addBtn {
+  font-size: 0.8rem;
+  color: #ff8a00;
+  text-decoration: none;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ===== Metrics ===== */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.metricCard {
+  background: #faf8f5;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.goalProgress {
+  background: linear-gradient(135deg, #fef9ef, #fff0d4);
+  border: 1px solid #ffcf73;
+}
+
+.metricLabel {
+  font-size: 0.7rem;
+  color: #999;
+  font-weight: 600;
+}
+
+.metricValue {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #222;
+  line-height: 1;
+}
+
+.metricUnit {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+/* ===== Self Logs ===== */
+.logList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.logItem {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  background: #faf8f5;
+  border-radius: 14px;
+}
+
+.logType {
+  width: 36px;
+  height: 36px;
+  background: #ff8a00;
+  color: white;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.logTitle {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #222;
+}
+
+.logText {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logImage {
+  width: 100%;
+  max-width: 200px;
+  border-radius: 10px;
+  margin-top: 8px;
+  object-fit: cover;
+  aspect-ratio: 4/3;
+}
+
+.logDate {
+  font-size: 0.7rem;
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+/* ===== Sessions ===== */
+.sessionList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sessionCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #faf8f5;
+  border-radius: 16px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.sessionCard:hover {
+  background: #fff0d4;
+}
+
+.sessionDate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+}
+
+.dateMonth {
+  font-size: 0.65rem;
+  color: #ff8a00;
+  font-weight: 700;
+}
+
+.dateDay {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #222;
+  line-height: 1;
+}
+
+.dateWeek {
+  font-size: 0.65rem;
+  color: #aaa;
+}
+
+.sessionContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.sessionType {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ff8a00;
+  margin-bottom: 4px;
+}
+
+.menuSummary {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.aiSummary {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arrow {
+  color: #ccc;
+  flex-shrink: 0;
+}
+
+/* ===== Reports ===== */
+.reportList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reportCard {
+  background: linear-gradient(135deg, #fef9ef, #fff8f0);
+  border: 1px solid #ffe0aa;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.reportMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  color: #ff8a00;
+}
+
+.reportContent {
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.emptyText {
+  color: #aaa;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 20px 0;
+}

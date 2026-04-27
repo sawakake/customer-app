@@ -19,6 +19,7 @@ export async function POST(request: Request) {
         postalCode: data.postalCode || '',
         address: data.address || '',
         phone: data.phone || '',
+        email: data.email || null,
         emergencyPhone: data.emergencyPhone || '',
         emergencyName: data.emergencyName || '',
         emergencyRelation: data.emergencyRelation || '',
