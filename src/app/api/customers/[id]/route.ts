@@ -23,7 +23,11 @@ export async function PUT(
         emergencyName: data.emergencyName,
         emergencyRelation: data.emergencyRelation,
         emergencyPhone: data.emergencyPhone,
-        // 必要に応じて他のフィールドも追加
+        email: data.email,
+        postalCode: data.postalCode,
+        address: data.address,
+        desiredServices: data.desiredServices,
+        status: data.status,
       },
     });
 

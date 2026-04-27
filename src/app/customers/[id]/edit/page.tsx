@@ -101,6 +101,29 @@ export default function EditCustomerPage() {
               <input required type="tel" name="phone" className="input" value={formData.phone} onChange={handleChange} />
             </div>
             <div className="form-group">
+              <label>メールアドレス (ログイン用ID)</label>
+              <input type="email" name="email" className="input" value={formData.email || ''} onChange={handleChange} placeholder="example@mail.com" />
+            </div>
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label>郵便番号 / 住所</label>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <input type="text" name="postalCode" className="input" value={formData.postalCode || ''} onChange={handleChange} placeholder="000-0000" style={{ maxWidth: '150px' }} />
+              </div>
+              <input type="text" name="address" className="input" value={formData.address || ''} onChange={handleChange} placeholder="東京都..." />
+            </div>
+          </div>
+
+          <h3 className={styles.sectionTitle} style={{ marginTop: '1.5rem' }}>プラン・ステータス</h3>
+          <div className={styles.grid}>
+            <div className="form-group">
+              <label>顧客ステータス *</label>
+              <select name="status" className="input" value={formData.status || '入会済み'} onChange={handleChange}>
+                <option value="入会済み">入会済み</option>
+                <option value="休会中">休会中</option>
+                <option value="退会">退会</option>
+              </select>
+            </div>
+            <div className="form-group">
               <label>契約プラン *</label>
               <select name="plan" className="input" value={formData.plan} onChange={handleChange}>
                 <option value="未設定">-- プランを選択してください --</option>
@@ -136,6 +159,22 @@ export default function EditCustomerPage() {
             <div className="form-group">
               <label>緊急用 電話番号</label>
               <input type="tel" name="emergencyPhone" className="input" value={formData.emergencyPhone || ''} onChange={handleChange} />
+            </div>
+          </div>
+
+          <h3 className={styles.sectionTitle} style={{ marginTop: '1.5rem' }}>アンケート（任意）</h3>
+          <div className={styles.grid} style={{ gridTemplateColumns: '1fr' }}>
+            <div className="form-group">
+              <label>解決したい悩み</label>
+              <textarea name="complaint" className={`input`} value={formData.complaint || ''} onChange={handleChange}></textarea>
+            </div>
+            <div className="form-group">
+              <label>理想の状態</label>
+              <textarea name="idealState" className={`input`} value={formData.idealState || ''} onChange={handleChange}></textarea>
+            </div>
+            <div className="form-group">
+              <label>欲しいサービス</label>
+              <textarea name="desiredServices" className={`input`} value={formData.desiredServices || ''} onChange={handleChange}></textarea>
             </div>
           </div>
         </div>
