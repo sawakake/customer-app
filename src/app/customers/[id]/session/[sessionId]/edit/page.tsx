@@ -52,6 +52,7 @@ function EditSessionPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const customerId = params.id as string;
+  const sessionId = params.sessionId as string;
   const isMonthlyMode = searchParams.get("type") === "monthly";
 
   const [isSaving, setIsSaving] = useState(false);
