@@ -20,20 +20,29 @@ export async function POST(request: Request) {
     const messages: any[] = [
       {
         role: 'system',
-        content: 'あなたはプロのパーソナルトレーナー及び理学療法士です。提供された顧客のセッション前（Before）とセッション後（After）の姿勢写真を確認し、どのような姿勢の改善が見られたかを分析してください。専門用語を少し交えつつも、顧客が読んで喜ぶようなポジティブでわかりやすいフィードバックを200文字程度で生成してください。形式はテキストのみです。'
+        content: `あなたはプロの理学療法士兼パーソナルトレーナーです。
+画像認識能力を駆使して、提供された顧客のセッション前（Before）とセッション後（After）の写真から姿勢の改善点を分析してください。
+
+【重要】
+- あなたには画像がはっきりと見えています。「画像が見られません」という回答は絶対に避け、見えている情報（肩の高さ、骨盤の傾き、首の位置など）から誠実に分析してください。
+- セッションによってどのようなポジティブな変化（猫背の改善、重心の安定など）があったかを具体的に述べてください。
+- 専門用語（骨盤前傾、円背など）を適度に取り入れつつ、顧客が読んでやる気が出るようなポジティブな口調で、200文字から300文字程度にまとめてください。
+- 形式はテキストのみで出力してください。`
       }
     ];
 
     const contentArray: any[] = [
-      { type: 'text', text: '以下の写真を見て、姿勢の改善要素を分析してください。' }
+      { type: 'text', text: '以下のBefore/After写真を比較分析してください。' }
     ];
 
-    beforeImages.forEach((img: string) => {
-      contentArray.push({ type: 'image_url', image_url: { url: img, detail: 'low' } });
+    beforeImages.forEach((img: string, i: number) => {
+      contentArray.push({ type: 'text', text: `【Before 写真 ${i + 1}】` });
+      contentArray.push({ type: 'image_url', image_url: { url: img, detail: 'high' } });
     });
 
-    afterImages.forEach((img: string) => {
-      contentArray.push({ type: 'image_url', image_url: { url: img, detail: 'low' } });
+    afterImages.forEach((img: string, i: number) => {
+      contentArray.push({ type: 'text', text: `【After 写真 ${i + 1}】` });
+      contentArray.push({ type: 'image_url', image_url: { url: img, detail: 'high' } });
     });
 
     messages.push({
