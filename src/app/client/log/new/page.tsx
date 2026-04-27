@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Camera, Coffee, Dumbbell, BookOpen, Save } from "lucide-react";
 import styles from "./page.module.css";
 
-export default function NewClientLogPage() {
+// =============================================
+// useSearchParams() を使う内側コンポーネント
+// =============================================
+function ClientLogNewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultType = searchParams.get("type") || "Diary";
@@ -17,9 +20,9 @@ export default function NewClientLogPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const typeConfig = {
-    Meal: { label: "食事記録", icon: Coffee, color: "#fda085", placeholder: "今日の食事内容を記録しましょう\n例: 朝: トースト・ヨーグルト\n昼: サラダチキン定食" },
+    Meal:    { label: "食事記録",    icon: Coffee,   color: "#fda085", placeholder: "今日の食事内容を記録しましょう\n例: 朝: トースト・ヨーグルト\n昼: サラダチキン定食" },
     Workout: { label: "自主トレ記録", icon: Dumbbell, color: "#ff8a00", placeholder: "今日のトレーニングを記録しましょう\n例: ウォーキング30分\nスクワット 20回×3セット" },
-    Diary: { label: "日記・体調記録", icon: BookOpen, color: "#4facfe", placeholder: "今日の体調はどうですか？\n例: 朝から少し疲れ気味だったが、昼以降は元気。\n体が軽くなってきた気がする！" },
+    Diary:   { label: "日記・体調記録", icon: BookOpen, color: "#4facfe", placeholder: "今日の体調はどうですか？\n例: 朝から少し疲れ気味だったが、昼以降は元気。\n体が軽くなってきた気がする！" },
   };
 
   const currentConfig = typeConfig[type as keyof typeof typeConfig];
@@ -67,7 +70,7 @@ export default function NewClientLogPage() {
               style={type === key ? { background: config.color } : {}}
             >
               <config.icon size={18} />
-              {key === 'Meal' ? '食事' : key === 'Workout' ? '自主トレ' : '日記'}
+              {key === "Meal" ? "食事" : key === "Workout" ? "自主トレ" : "日記"}
             </button>
           ))}
         </div>
@@ -109,5 +112,16 @@ export default function NewClientLogPage() {
         )}
       </main>
     </div>
+  );
+}
+
+// =============================================
+// ページ本体: Suspense で包む（ビルドエラー対策）
+// =============================================
+export default function NewClientLogPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "2rem", textAlign: "center" }}>読み込み中...</div>}>
+      <ClientLogNewContent />
+    </Suspense>
   );
 }

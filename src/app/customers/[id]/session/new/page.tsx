@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import VoiceRecorder from "@/components/VoiceRecorder";
@@ -46,7 +46,7 @@ const makePhotoSlots = (): PhotoSlot[] => [
 // =============================================
 // メインコンポーネント
 // =============================================
-export default function NewSessionPage() {
+function NewSessionPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -584,5 +584,14 @@ export default function NewSessionPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// Suspense で包んでビルドエラーを解消
+export default function NewSessionPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "2rem", textAlign: "center" }}>読み込み中...</div>}>
+      <NewSessionPageContent />
+    </Suspense>
   );
 }
