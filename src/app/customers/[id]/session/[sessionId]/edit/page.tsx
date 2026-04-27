@@ -119,7 +119,7 @@ function EditSessionPageContent() {
              setMenuItems(session.menuItems.map((m: any) => ({ ...m, isOpen: false })));
           }
           if (session.photos && session.photos.length > 0) {
-             const loadedPhotos = INITIAL_PHOTO_SLOTS.map(slot => {
+             const loadedPhotos = makePhotoSlots().map(slot => {
                const photo = session.photos.find((p: any) => p.timing === slot.timing && p.viewType === slot.viewType);
                if (photo) {
                  return { ...slot, preview: photo.url };
