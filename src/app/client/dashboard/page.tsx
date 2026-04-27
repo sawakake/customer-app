@@ -51,8 +51,11 @@ export default async function ClientDashboard() {
   if (!customer) redirect("/client/login");
 
   // プロパティの互換性を保つために customer オブジェクトに結合するか、そのまま使用する
-  customer.customerLogs = logs as any;
-  customer.reports = reports as any;
+  const customerWithData = {
+    ...customer,
+    customerLogs: logs,
+    reports: reports,
+  };
 
   const latestMetric = metrics[0] as any;
   const currentGoal = goals[0] as any;
@@ -69,7 +72,7 @@ export default async function ClientDashboard() {
           </div>
           <div className={styles.userGreeting}>
             <p className={styles.welcomeText}>おかえりなさい！</p>
-            <h1 className={styles.userName}>{customer.name} さん</h1>
+            <h1 className={styles.userName}>{customerWithData.name} さん</h1>
           </div>
           <Link href="/api/auth/signout" className={styles.logoutBtn}>ログアウト</Link>
         </div>
@@ -141,14 +144,14 @@ export default async function ClientDashboard() {
         )}
 
         {/* セルフログ（食事・日記） */}
-        {customer.customerLogs.length > 0 && (
+        {customerWithData.customerLogs.length > 0 && (
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}><FileText size={20} /> 自分の記録</h2>
               <Link href="/client/log/new" className={styles.addBtn}><Plus size={16} /> 追加</Link>
             </div>
             <div className={styles.logList}>
-              {customer.customerLogs.map(log => (
+              {customerWithData.customerLogs.map((log: any) => (
                 <div key={log.id} className={styles.logItem}>
                   <div className={styles.logType}>
                     {log.type === 'Meal' ? <Coffee size={16} /> : log.type === 'Workout' ? <Dumbbell size={16} /> : <BookOpen size={16} />}
@@ -172,7 +175,7 @@ export default async function ClientDashboard() {
             <p className={styles.emptyText}>まだセッション記録がありません</p>
           ) : (
             <div className={styles.sessionList}>
-              {recentSessions.map(session => (
+              {recentSessions.map((session: any) => (
                 <Link key={session.id} href={`/client/session/${session.id}`} className={styles.sessionCard}>
                   <div className={styles.sessionDate}>
                     <span className={styles.dateMonth}>{new Date(session.date).toLocaleDateString('ja-JP', { month: 'long' })}</span>
@@ -183,7 +186,7 @@ export default async function ClientDashboard() {
                     <div className={styles.sessionType}>{session.type} {session.duration}分</div>
                     {session.menuItems.length > 0 && (
                       <div className={styles.menuSummary}>
-                        {session.menuItems.slice(0, 3).map(m => m.name).join('・')}
+                        {session.menuItems.slice(0, 3).map((m: any) => m.name).join('・')}
                         {session.menuItems.length > 3 && ' …'}
                       </div>
                     )}
@@ -199,11 +202,11 @@ export default async function ClientDashboard() {
         </section>
 
         {/* AIレポート */}
-        {customer.reports.length > 0 && (
+        {customerWithData.reports.length > 0 && (
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}><Sparkles size={20} /> AIコーチングレポート</h2>
             <div className={styles.reportList}>
-              {customer.reports.map(report => (
+              {customerWithData.reports.map((report: any) => (
                 <div key={report.id} className={styles.reportCard}>
                   <div className={styles.reportMeta}>
                     <strong>{report.title}</strong>
