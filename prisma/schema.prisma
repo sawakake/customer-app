@@ -32,22 +32,36 @@ model Customer {
   postalCode        String
   address           String
   phone             String
+  email             String?   @unique // お客様ログイン用
 
   emergencyPhone    String
   emergencyName     String
   emergencyRelation String
+  
+  plan              String?   @default("未設定")
+  status            String    @default("入会済み")
 
-  plan              String?   @default("未設定") // プラン分け用
-  status            String    @default("入会済み") // 体験のみ / 入会済み / 休会中 など
-
-  complaint         String?   // 解決したい身体の悩み
-  idealState        String?   // 求める理想の状態
-  desiredServices   String?   // あったらいいなと思うサービス・物
+  complaint         String?
+  idealState        String?
+  desiredServices   String?
 
   metrics           Metric[]
   goals             Goal[]
   sessions          Session[]
   reports           Report[]
+  customerLogs      CustomerLog[]
+}
+
+model CustomerLog {
+  id          String   @id @default(uuid())
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId  String
+  type        String   // Meal, Workout, Diary
+  title       String?  // 内容の短い見出し
+  content     String?  // 詳細テキスト
+  imageUrl    String?  // 食事写真などのURL
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
 }
 
 model Metric {
