@@ -178,13 +178,17 @@ function EditSessionPageContent() {
     updateMenuItem(index, "isOpen", !menuItems[index].isOpen);
   };
 
-  // repsをセット数に合わせて自動調整するヘルパー
+  // reps & weight をセット数に合わせて自動調整するヘルパー
   const updateSets = (index: number, sets: number) => {
-    const current = menuItems[index].reps.split(",").map(s => s.trim());
-    const newReps = Array.from({ length: sets }, (_, i) => current[i] || "10").join(",");
+    const currentRepsArr = menuItems[index].reps.split(",").map(s => s.trim());
+    const currentWeightsArr = menuItems[index].weight.split(",").map(s => s.trim());
+    
+    const newReps = Array.from({ length: sets }, (_, i) => currentRepsArr[i] || "10").join(",");
+    const newWeights = Array.from({ length: sets }, (_, i) => currentWeightsArr[i] || (currentWeightsArr[0] || "20")).join(",");
+    
     setMenuItems(prev => {
       const next = [...prev];
-      next[index] = { ...next[index], sets, reps: newReps };
+      next[index] = { ...next[index], sets, reps: newReps, weight: newWeights };
       return next;
     });
   };
@@ -193,6 +197,12 @@ function EditSessionPageContent() {
     const reps = menuItems[menuIndex].reps.split(",").map(s => s.trim());
     reps[setIndex] = value;
     updateMenuItem(menuIndex, "reps", reps.join(","));
+  };
+
+  const updateWeight = (menuIndex: number, setIndex: number, value: string) => {
+    const weights = menuItems[menuIndex].weight.split(",").map(s => s.trim());
+    weights[setIndex] = value;
+    updateMenuItem(menuIndex, "weight", weights.join(","));
   };
 
   // =============================================
@@ -562,14 +572,7 @@ function EditSessionPageContent() {
                                 value={item.name}
                                 onChange={e => updateMenuItem(idx, "name", e.target.value)}
                                 placeholder="種目名（例：スクワット）"
-                                style={{ flex: 2 }}
-                              />
-                              <input
-                                type="text"
-                                className="input"
-                                value={item.weight}
-                                onChange={e => updateMenuItem(idx, "weight", e.target.value)}
-                                placeholder="重量（例：20kg）"
+                                style={{ flex: 1 }}
                               />
                             </div>
 
@@ -585,24 +588,42 @@ function EditSessionPageContent() {
                               </div>
                             </div>
 
-                            {/* セットごとの回数 */}
+                            {/* セットごとの回数・重量 */}
                             <div className={styles.repsGrid}>
-                              {Array.from({ length: item.sets }, (_, si) => (
-                                <div key={si} className={styles.repItem}>
-                                  <label className={styles.repLabel}>{si + 1}セット目</label>
-                                  <div className={styles.repInputRow}>
-                                    <input
-                                      type="number"
-                                      min="1"
-                                      className={`input ${styles.repInput}`}
-                                      value={repsArr[si] ?? ""}
-                                      onChange={e => updateRep(idx, si, e.target.value)}
-                                      placeholder="10"
-                                    />
-                                    <span className={styles.repUnit}>回</span>
+                              {Array.from({ length: item.sets }, (_, si) => {
+                                const weightsArr = item.weight.split(",").map(s => s.trim());
+                                return (
+                                  <div key={si} className={styles.repItem}>
+                                    <label className={styles.repLabel}>{si + 1}セット目</label>
+                                    <div className={styles.repInputRow}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <input
+                                          type="number"
+                                          step="0.5"
+                                          className={`input ${styles.repInput}`}
+                                          style={{ width: '60px' }}
+                                          value={weightsArr[si] ?? ""}
+                                          onChange={e => updateWeight(idx, si, e.target.value)}
+                                          placeholder="20"
+                                        />
+                                        <span className={styles.repUnit}>kg</span>
+                                      </div>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          className={`input ${styles.repInput}`}
+                                          style={{ width: '50px' }}
+                                          value={repsArr[si] ?? ""}
+                                          onChange={e => updateRep(idx, si, e.target.value)}
+                                          placeholder="10"
+                                        />
+                                        <span className={styles.repUnit}>回</span>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
 
                             {/* メモ */}
