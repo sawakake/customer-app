@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import styles from "./Sidebar.module.css";
-import { LayoutDashboard, Users, UserPlus, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, UserPlus, LogOut, Menu, X, Video } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -18,7 +18,10 @@ export default function Sidebar() {
     <>
       {/* モバイル用ヘッダー */}
       <div className={styles.mobileHeader}>
-        <div className={styles.mobileLogo}>BodyCareGymCONNECT</div>
+        <div className={styles.mobileLogo} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <img src="/images/gym-logo.png" alt="Logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+          BodyCareGymCONNECT
+        </div>
         <button onClick={toggleMenu} className={styles.menuToggle}>
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -51,6 +54,13 @@ export default function Sidebar() {
               onClick={closeMenu}
             >
               <Users size={18} /> <span>顧客一覧</span>
+            </Link>
+            <Link 
+              href="/dashboard/videos" 
+              className={`${styles.navItem} ${pathname === '/dashboard/videos' ? styles.active : ''}`}
+              onClick={closeMenu}
+            >
+              <Video size={18} /> <span>動画リスト管理</span>
             </Link>
           </div>
 

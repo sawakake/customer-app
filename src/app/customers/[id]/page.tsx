@@ -29,6 +29,10 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
       },
       reports: {
         orderBy: { createdAt: "desc" }
+      },
+      customerLogs: {
+        orderBy: { date: "desc" },
+        take: 10
       }
     }
   });
@@ -240,6 +244,33 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
             <p>{customer.desiredServices || "回答なし"}</p>
           </div>
         </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: '2rem' }}>
+        <h2 className={styles.sectionTitle}>
+          お客様のセルフ記録（食事・運動など）
+        </h2>
+        {customer.customerLogs && customer.customerLogs.length > 0 ? (
+          <div className={styles.surveyBlock}>
+            {customer.customerLogs.map((log: any) => (
+              <div key={log.id} className={styles.surveyItem} style={{ borderLeft: "4px solid var(--primary)", marginBottom: "1rem", paddingLeft: "1rem" }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--primary)' }}>{log.type === 'Meal' ? '食事' : log.type === 'Workout' ? '自主トレ' : '日記'}</span>
+                  <span style={{ fontSize: '0.8rem', color: '#666' }}>{new Date(log.date).toLocaleDateString('ja-JP')}</span>
+                </div>
+                <h4 style={{ margin: "0.25rem 0" }}>{log.title || '無題'}</h4>
+                <p style={{ whiteSpace: 'pre-wrap', marginBottom: log.imageUrl ? '0.5rem' : '0' }}>{log.content}</p>
+                {log.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={log.imageUrl} alt="アップロードされた記録" style={{ maxWidth: "200px", borderRadius: "8px" }} />
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className={styles.emptyText}>セルフ記録はまだありません。</p>
+        )}
       </div>
 
       <div className={`card ${styles.chartSection}`}>

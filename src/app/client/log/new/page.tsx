@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Camera, Coffee, Dumbbell, BookOpen, Save } from "lucide-react";
 import styles from "./page.module.css";
+import { compressImageToBase64 } from "@/lib/imageUtils";
 
 // =============================================
 // useSearchParams() を使う内側コンポーネント
@@ -17,6 +18,8 @@ function ClientLogNewContent() {
   const [type, setType] = useState(defaultType);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [isCompressing, setIsCompressing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const typeConfig = {
@@ -27,13 +30,27 @@ function ClientLogNewContent() {
 
   const currentConfig = typeConfig[type as keyof typeof typeConfig];
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsCompressing(true);
+    try {
+      const base64 = await compressImageToBase64(file);
+      setImageUrl(base64);
+    } catch (e) {
+      alert("画像の処理に失敗しました。");
+    } finally {
+      setIsCompressing(false);
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
       const res = await fetch("/api/client/logs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, title, content }),
+        body: JSON.stringify({ type, title, content, imageUrl }),
       });
       if (res.ok) {
         router.push("/client/dashboard");
@@ -99,17 +116,41 @@ function ClientLogNewContent() {
           />
         </div>
 
-        {/* 写真（食事の場合） */}
-        {type === "Meal" && (
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>写真を追加（任意）</label>
-            <div className={styles.photoPicker}>
-              <Camera size={24} color="#aaa" />
-              <p>タップして写真を選択</p>
-              <p className={styles.photoHint}>※写真アップロード機能は今後追加予定です</p>
-            </div>
+        {/* 写真アップロード（すべてのタイプで行えるように） */}
+        <div className={styles.inputGroup}>
+          <label className={styles.label}>写真を追加（任意）</label>
+          <div 
+            className={styles.photoPicker} 
+            onClick={() => document.getElementById('photoUpload')?.click()}
+            style={{ cursor: 'pointer', overflow: 'hidden', padding: imageUrl ? '0' : '2rem 1rem' }}
+          >
+            {imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={imageUrl} alt="プレビュー" style={{ width: '100%', height: 'auto', objectFit: 'cover' }} />
+            ) : (
+              <>
+                <Camera size={24} color="#aaa" />
+                <p>タップして写真を選択（カメラ・アルバム）</p>
+                {isCompressing && <p style={{ color: 'var(--primary)' }}>画像処理中...</p>}
+              </>
+            )}
           </div>
-        )}
+          <input 
+            id="photoUpload"
+            type="file" 
+            accept="image/*" 
+            style={{ display: "none" }}
+            onChange={handlePhotoUpload}
+          />
+          {imageUrl && (
+            <button 
+              onClick={() => setImageUrl("")} 
+              style={{ padding: '0.5rem', background: '#ffe4e6', color: '#e11d48', border: 'none', borderRadius: '4px', width: '100%', marginTop: '0.5rem' }}
+            >
+              写真を削除
+            </button>
+          )}
+        </div>
       </main>
     </div>
   );

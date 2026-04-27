@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
-import { Activity, Calendar, Ruler, FileText, Plus, Sparkles, ChevronRight, Dumbbell, Coffee, BookOpen } from "lucide-react";
+import { Activity, Calendar, Ruler, FileText, Plus, Sparkles, ChevronRight, Dumbbell, Coffee, BookOpen, Video, TrendingUp } from "lucide-react";
+import MetricsChart from "@/components/charts/MetricsChart";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,11 @@ export default async function ClientDashboard() {
     })
   ]);
 
+  // 5. 動画リストの取得
+  const videos = await prisma.videoGuide.findMany();
+  // 簡易レコメンド（ランダムで3つ抽出、将来的にはお客様の課題に合わせた抽出を行う）
+  const recommendedVideos = videos.sort(() => 0.5 - Math.random()).slice(0, 3);
+  
   if (!customer) redirect("/client/login");
 
   // プロパティの互換性を保つために customer オブジェクトに結合するか、そのまま使用する
@@ -60,6 +66,13 @@ export default async function ClientDashboard() {
   const latestMetric = metrics[0] as any;
   const currentGoal = goals[0] as any;
   const recentSessions = sessions.filter(s => s.type !== "計測のみ") as any;
+
+  // グラフ用データ
+  const chartMetrics = [...metrics].reverse().map(m => ({
+    date: new Date(m.date).toLocaleDateString('ja-JP'),
+    weight: m.weight,
+    waist: m.waist
+  }));
 
   return (
     <div className={styles.container}>
@@ -140,6 +153,15 @@ export default async function ClientDashboard() {
                 </div>
               )}
             </div>
+
+            {/* 身体データ推移グラフ */}
+            <div className={styles.chartSection} style={{ marginTop: '1.5rem', background: '#fff', padding: '1rem', borderRadius: '12px', border: '1px solid #eaeaea' }}>
+              <h3 className={styles.sectionTitle} style={{ fontSize: '1.1rem', marginBottom: '1rem', border: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <TrendingUp size={18} color="var(--primary)" /> 身体データ推移
+              </h3>
+              <MetricsChart metrics={chartMetrics} />
+            </div>
+
           </section>
         )}
 
@@ -212,8 +234,27 @@ export default async function ClientDashboard() {
                     <strong>{report.title}</strong>
                     <span>{new Date(report.createdAt).toLocaleDateString('ja-JP')}</span>
                   </div>
-                  <p className={styles.reportContent}>{report.content.substring(0, 200)}...</p>
+                  <details style={{ cursor: 'pointer', marginTop: '0.5rem' }}>
+                    <summary style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.5rem' }}>レポートを開く / 閉じる</summary>
+                    <p className={styles.reportContent} style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{report.content}</p>
+                  </details>
                 </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* おすすめ動画 */}
+        {recommendedVideos.length > 0 && (
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}><Video size={20} /> あなたにおすすめの動画</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {recommendedVideos.map(video => (
+                <a key={video.id} href={video.url} target="_blank" rel="noreferrer" style={{ background: '#fff', padding: '1rem', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.5rem', textDecoration: 'none', color: '#333', border: '1px solid #eaeaea' }}>
+                  <span style={{ fontSize: '0.75rem', background: '#e0f2fe', color: '#0284c7', padding: '0.2rem 0.6rem', borderRadius: '12px', width: 'max-content', fontWeight: 'bold' }}>{video.category}</span>
+                  <strong style={{ fontSize: '1rem' }}>{video.title}</strong>
+                  {video.description && <span style={{ fontSize: '0.85rem', color: '#666' }}>{video.description}</span>}
+                </a>
               ))}
             </div>
           </section>

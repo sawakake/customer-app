@@ -47,7 +47,7 @@ const makePhotoSlots = (): PhotoSlot[] => [
 // =============================================
 // メインコンポーネント
 // =============================================
-function NewSessionPageContent() {
+function EditSessionPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -85,15 +85,49 @@ function NewSessionPageContent() {
   // ---------- 姿勢写真スロット ----------
   const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>(makePhotoSlots());
 
-  // ---------- 顧客名取得 ----------
+  // ---------- 顧客名・セッション情報の取得 ----------
   useEffect(() => {
-    // Fetch customer name for the header
+    // 顧客名取得
     fetch(`/api/customers/${customerId}`)
       .then(res => res.json())
       .then(customer => {
         if (customer && !customer.error) setCustomerName(customer.name);
       });
-  }, [customerId]);
+
+    // セッション情報の取得
+    fetch(`/api/sessions/${sessionId}`)
+      .then(res => res.json())
+      .then(session => {
+        if (session && !session.error) {
+          setIsMonthlyMode(session.type === "計測のみ" || session.duration === 0);
+          setSessionForm({
+            date: new Date(session.date).toISOString().slice(0, 16),
+            type: session.type,
+            duration: session.duration.toString(),
+            conditionSelf: session.conditionSelf || "",
+            conditionObjective: session.conditionObjective || "",
+            routinesText: session.routinesText || "",
+            homework: session.homework || "",
+            aiSummary: session.aiSummary || "",
+            aiAdvice: session.aiAdvice || "",
+            clientMotivation: session.clientMotivation || "",
+          });
+          if (session.menuItems && session.menuItems.length > 0) {
+             setMenuItems(session.menuItems.map((m: any) => ({ ...m, isOpen: false })));
+          }
+          if (session.photos && session.photos.length > 0) {
+             const loadedPhotos = INITIAL_PHOTO_SLOTS.map(slot => {
+               const photo = session.photos.find((p: any) => p.timing === slot.timing && p.viewType === slot.viewType);
+               if (photo) {
+                 return { ...slot, preview: photo.url };
+               }
+               return slot;
+             });
+             setPhotoSlots(loadedPhotos);
+          }
+        }
+      });
+  }, [customerId, sessionId]);
 
   // =============================================
   // AI 分析結果受け取り
@@ -244,8 +278,8 @@ function NewSessionPageContent() {
           url:      s.preview, // Base64 or URL
         }));
 
-      const res = await fetch("/api/sessions", {
-        method: "POST",
+      const res = await fetch(`/api/sessions/${sessionId}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerId,
@@ -332,7 +366,7 @@ function NewSessionPageContent() {
         </Link>
         <h1 className={styles.title}>
           {isMonthlyMode ? <Ruler size={28} /> : <Activity size={28} />}
-          {isMonthlyMode ? "月次身体データ計測" : "今日のセッション記録"}: {customerName} 様
+          セッションの編集: {customerName} 様
         </h1>
       </div>
 
@@ -640,10 +674,10 @@ function NewSessionPageContent() {
 }
 
 // Suspense で包んでビルドエラーを解消
-export default function NewSessionPage() {
+export default function EditSessionPage() {
   return (
     <Suspense fallback={<div style={{ padding: "2rem", textAlign: "center" }}>読み込み中...</div>}>
-      <NewSessionPageContent />
+      <EditSessionPageContent />
     </Suspense>
   );
 }

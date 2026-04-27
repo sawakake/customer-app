@@ -56,6 +56,9 @@ export default async function SessionDetailPage({
         <div className={styles.metaBadges}>
           <span className={styles.badge}><Clock size={14} /> {session.duration}分</span>
           <span className={styles.badge}>{session.type}</span>
+          <Link href={`/customers/${id}/session/${session.id}/edit`} className="btn btn-secondary" style={{ padding: "0.25rem 0.75rem", fontSize: "0.85rem", height: "auto" }}>
+            編集する
+          </Link>
           <GenerateReportButton customerId={id} type="Session" />
         </div>
       </div>
