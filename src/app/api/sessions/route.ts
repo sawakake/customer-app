@@ -23,6 +23,7 @@ export async function POST(request: Request) {
         conversation: sessionData.summary,
         aiSummary: sessionData.summary,
         aiAdvice: sessionData.advice,
+        postureAnalysis: sessionData.postureAnalysis,
         clientMotivation: sessionData.motivation,
         menuItems: {
           create: menuItems?.map((item: any) => ({

@@ -111,6 +111,32 @@ function NewSessionPageContent() {
     }
   };
 
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const handleGenerateComprehensiveReport = async () => {
+    setIsGeneratingReport(true);
+    try {
+      const res = await fetch('/api/generate-comprehensive-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionData: sessionForm,
+          menuItems: menuItems,
+          postureAnalysis: sessionForm.postureAnalysis
+        })
+      });
+      const data = await res.json();
+      if (data.report) {
+        setSessionForm(prev => ({ ...prev, advice: data.report }));
+      } else {
+        alert("レポート生成に失敗しました。");
+      }
+    } catch (e) {
+      alert("エラーが発生しました。");
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setSessionForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -223,9 +249,9 @@ function NewSessionPageContent() {
       if (data.analysis) {
         setSessionForm(prev => ({
           ...prev,
-          advice: prev.advice ? `${prev.advice}\n\n【姿勢の分析（AI）】\n${data.analysis}` : `【姿勢の分析（AI）】\n${data.analysis}`
+          postureAnalysis: data.analysis
         }));
-        alert("分析が完了し、アドバイス欄に追記されました！");
+        alert("姿勢解析が完了しました！写真の下に結果が表示されています。");
       } else {
         alert(data.error || "姿勢分析に失敗しました。");
       }
@@ -438,6 +464,17 @@ function NewSessionPageContent() {
                       {isAnalyzingPosture ? "画像AI解析中..." : "アップロードした写真で姿勢変化をAI分析する"}
                     </button>
                   </div>
+                  </div>
+                  {sessionForm.postureAnalysis && (
+                    <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#f0f9ff', borderRadius: '12px', border: '1px solid #bae6fd' }}>
+                      <h4 style={{ fontSize: '0.9rem', color: '#0369a1', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Sparkles size={14} /> AI姿勢分析結果
+                      </h4>
+                      <p style={{ fontSize: '0.85rem', color: '#0c4a6e', whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                        {sessionForm.postureAnalysis}
+                      </p>
+                    </div>
+                  )}
                   <p className={styles.helpText}>タップして写真を選択（カメラ撮影・ライブラリ両方対応）</p>
                 </div>
               )}
@@ -648,8 +685,20 @@ function NewSessionPageContent() {
                   <p>{sessionForm.motivation || "録音後に自動入力されます"}</p>
                 </div>
                 <div className={styles.aiItem}>
-                  <h4>AIアドバイス</h4>
-                  <p>{sessionForm.advice || "録音後に自動入力されます"}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <h4 style={{ margin: 0 }}>総合アドバイス</h4>
+                    <button 
+                      type="button" 
+                      onClick={handleGenerateComprehensiveReport} 
+                      disabled={isGeneratingReport}
+                      className="btn btn-secondary btn-sm"
+                      style={{ fontSize: '0.7rem', padding: '4px 8px' }}
+                    >
+                      <Sparkles size={12} />
+                      {isGeneratingReport ? "生成中..." : "全データから生成"}
+                    </button>
+                  </div>
+                  <p>{sessionForm.advice || "データ入力後にボタンを押すと、総合的なアドバイスが生成されます"}</p>
                 </div>
               </div>
             </div>

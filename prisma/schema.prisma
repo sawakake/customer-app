@@ -132,6 +132,7 @@ model Session {
   // AI分析
   aiSummary          String?
   aiAdvice           String?
+  postureAnalysis    String?
   clientMotivation   String?
 }
 

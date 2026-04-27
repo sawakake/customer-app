@@ -40,6 +40,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
         homework: data.homework,
         aiSummary: data.aiSummary,
         aiAdvice: data.aiAdvice,
+        postureAnalysis: data.postureAnalysis,
         clientMotivation: data.clientMotivation,
         menuItems: {
           deleteMany: {},
