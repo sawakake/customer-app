@@ -17,38 +17,46 @@ export default async function ClientDashboard() {
   // スタッフがアクセスしたらスタッフ画面へ
   if (role === "staff") redirect("/dashboard");
 
-  const customer = await prisma.customer.findUnique({
-    where: { id: userId },
-    include: {
-      sessions: {
-        orderBy: { date: "desc" },
-        take: 10,
-        include: { menuItems: true }
-      },
-      metrics: {
-        orderBy: { date: "desc" },
-        take: 1
-      },
-      goals: {
-        orderBy: { createdAt: "desc" },
-        take: 1
-      },
-      reports: {
-        orderBy: { createdAt: "desc" },
-        take: 3
-      },
-      customerLogs: {
-        orderBy: { date: "desc" },
-        take: 10
-      }
-    }
-  });
+  // 重い結合クエリを避け、並列で独立したクエリを発行する
+  const [customer, sessions, metrics, goals, reports, logs] = await Promise.all([
+    prisma.customer.findUnique({ where: { id: userId } }),
+    prisma.session.findMany({
+      where: { customerId: userId },
+      orderBy: { date: "desc" },
+      take: 10,
+      include: { menuItems: true }
+    }),
+    prisma.metric.findMany({
+      where: { customerId: userId },
+      orderBy: { date: "desc" },
+      take: 1
+    }),
+    prisma.goal.findMany({
+      where: { customerId: userId },
+      orderBy: { createdAt: "desc" },
+      take: 1
+    }),
+    prisma.report.findMany({
+      where: { customerId: userId },
+      orderBy: { createdAt: "desc" },
+      take: 3
+    }),
+    prisma.customerLog.findMany({
+      where: { customerId: userId },
+      orderBy: { date: "desc" },
+      take: 10
+    })
+  ]);
 
   if (!customer) redirect("/client/login");
 
-  const latestMetric = customer.metrics[0];
-  const currentGoal = customer.goals[0];
-  const recentSessions = customer.sessions.filter(s => s.type !== "計測のみ");
+  // プロパティの互換性を保つために customer オブジェクトに結合するか、そのまま使用する
+  customer.customerLogs = logs as any;
+  customer.reports = reports as any;
+
+  const latestMetric = metrics[0] as any;
+  const currentGoal = goals[0] as any;
+  const recentSessions = sessions.filter(s => s.type !== "計測のみ") as any;
 
   return (
     <div className={styles.container}>

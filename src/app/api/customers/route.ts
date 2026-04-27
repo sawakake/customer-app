@@ -40,14 +40,14 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const customers = await prisma.customer.findMany({
-      include: {
-        sessions: {
-          orderBy: { date: "desc" },
-          take: 1
-        },
-        metrics: {
-          orderBy: { date: "desc" },
-          take: 1
+      select: {
+        id: true,
+        name: true,
+        furigana: true,
+        plan: true,
+        createdAt: true,
+        _count: {
+          select: { sessions: true }
         }
       },
       orderBy: { createdAt: 'desc' },

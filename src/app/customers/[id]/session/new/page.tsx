@@ -86,11 +86,11 @@ function NewSessionPageContent() {
 
   // ---------- 顧客名取得 ----------
   useEffect(() => {
-    fetch("/api/customers")
-      .then(r => r.json())
-      .then(data => {
-        const c = data.find((c: any) => c.id === customerId);
-        if (c) setCustomerName(c.name);
+    // Fetch customer name for the header
+    fetch(`/api/customers/${customerId}`)
+      .then(res => res.json())
+      .then(customer => {
+        if (customer && !customer.error) setCustomerName(customer.name);
       });
   }, [customerId]);
 

@@ -16,12 +16,10 @@ export default function EditCustomerPage() {
   const [formData, setFormData] = useState<any>(null);
 
   useEffect(() => {
-    fetch(`/api/customers`)
+    fetch(`/api/customers/${id}`)
       .then(res => res.json())
-      .then(data => {
-        const customer = data.find((c: any) => c.id === id);
-        if (customer) {
-          // dob is string from JSON
+      .then(customer => {
+        if (customer && !customer.error) {
           const dobDate = new Date(customer.dob);
           const dobString = dobDate.toISOString().split('T')[0];
           setFormData({ ...customer, dob: dobString });

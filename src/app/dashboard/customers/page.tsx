@@ -30,7 +30,8 @@ export default function CustomersManagementPage() {
   });
 
   const getStatusBadge = (customer: any) => {
-    if (!customer.sessions || customer.sessions.length === 0) return { label: '未開始', color: '#94a3b8' };
+    const sessionCount = customer._count?.sessions || 0;
+    if (sessionCount === 0) return { label: '未開始', color: '#94a3b8' };
     return { label: '継続中', color: '#10b981' };
   };
 

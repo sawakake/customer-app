@@ -13,80 +13,97 @@ export async function GET() {
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
-    // 全てのセッションを取得
-    const allSessions = await prisma.session.findMany({
-      orderBy: { date: 'desc' }
+    // 並列で集計クエリを実行（findMany全件取得をやめ、DB側にカウントさせる）
+    const [
+      thisMonthSessionCount,
+      lastMonthSessionCount,
+      thisMonthMeasurements,
+      experienceCount,
+      groupByDurationThisMonth,
+      groupByDurationLastMonth,
+      totalCustomers,
+      newEnrollments,
+      planGroup
+    ] = await Promise.all([
+      // 今月のセッション数
+      prisma.session.count({
+        where: { date: { gte: currentMonthStart, lte: currentMonthEnd }, type: { not: "計測のみ" } }
+      }),
+      // 先月のセッション数
+      prisma.session.count({
+        where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, type: { not: "計測のみ" } }
+      }),
+      // 今月の計測のみ数
+      prisma.session.count({
+        where: { date: { gte: currentMonthStart, lte: currentMonthEnd }, type: "計測のみ" }
+      }),
+      // 今月の体験数
+      prisma.session.count({
+        where: { date: { gte: currentMonthStart, lte: currentMonthEnd }, type: "体験" }
+      }),
+      // 今月：時間ごとのグループ集計
+      prisma.session.groupBy({
+        by: ['duration'],
+        where: { date: { gte: currentMonthStart, lte: currentMonthEnd }, type: { not: "計測のみ" } },
+        _count: true
+      }),
+      // 先月：時間ごとのグループ集計
+      prisma.session.groupBy({
+        by: ['duration'],
+        where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, type: { not: "計測のみ" } },
+        _count: true
+      }),
+      // 全顧客数
+      prisma.customer.count(),
+      // 今月の新規顧客
+      prisma.customer.count({
+        where: { createdAt: { gte: currentMonthStart, lte: currentMonthEnd } }
+      }),
+      // プランごとの顧客数集計
+      prisma.customer.groupBy({
+        by: ['plan'],
+        _count: true
+      })
+    ]);
+
+    // 内訳と売上の計算
+    const durationCount = { "60": 0, "90": 0, "other": 0 };
+    let thisMonthRevenue = 0;
+    groupByDurationThisMonth.forEach(g => {
+      if (g.duration === 60) durationCount["60"] += g._count;
+      else if (g.duration === 90) durationCount["90"] += g._count;
+      else durationCount["other"] += g._count;
+
+      thisMonthRevenue += (g.duration / 60) * 8500 * g._count;
     });
 
-    const allCustomers = await prisma.customer.findMany();
-
-    // 今月のセッション (計測のみを除外)
-    const thisMonthSessions = allSessions.filter(s => {
-      const d = new Date(s.date);
-      return d >= currentMonthStart && d <= currentMonthEnd && s.type !== "計測のみ";
+    let lastMonthRevenue = 0;
+    groupByDurationLastMonth.forEach(g => {
+      lastMonthRevenue += (g.duration / 60) * 8500 * g._count;
     });
-
-    // 先月のセッション (計測のみを除外)
-    const lastMonthSessions = allSessions.filter(s => {
-      const d = new Date(s.date);
-      return d >= lastMonthStart && d <= lastMonthEnd && s.type !== "計測のみ";
-    });
-
-    // 計測のみの件数（今月）
-    const thisMonthMeasurements = allSessions.filter(s => {
-      const d = new Date(s.date);
-      return d >= currentMonthStart && d <= currentMonthEnd && s.type === "計測のみ";
-    }).length;
-
-    // 内訳
-    const durationCount = {
-      "60": thisMonthSessions.filter(s => s.duration === 60).length,
-      "90": thisMonthSessions.filter(s => s.duration === 90).length,
-      "other": thisMonthSessions.filter(s => s.duration !== 60 && s.duration !== 90).length
-    };
-
-    // 体験数 (今月)
-    const experienceCount = thisMonthSessions.filter(s => s.type === "体験").length;
-
-    // 新規入会数 (今月登録された顧客)
-    const newEnrollments = allCustomers.filter(c => {
-      const d = new Date(c.createdAt);
-      return d >= currentMonthStart && d <= currentMonthEnd;
-    }).length;
 
     // 入会率 (新規入会 / 体験数)
     const enrollmentRate = experienceCount > 0 ? (newEnrollments / experienceCount) * 100 : 0;
 
-    // 売上計算 (60分単価: 8500円)
-    const UNIT_PRICE_60 = 8500;
-    const calculateRevenue = (sessions: any[]) => {
-      return Math.round(sessions.reduce((total, s) => {
-        return total + (s.duration / 60) * UNIT_PRICE_60;
-      }, 0));
-    };
-
-    const thisMonthRevenue = calculateRevenue(thisMonthSessions);
-    const lastMonthRevenue = calculateRevenue(lastMonthSessions);
-
     // プラン別顧客数
-    const planStats = allCustomers.reduce((acc: any, c) => {
-      const plan = c.plan || "未設定";
-      acc[plan] = (acc[plan] || 0) + 1;
-      return acc;
-    }, {});
+    const planStats: Record<string, number> = {};
+    planGroup.forEach(g => {
+      const planName = g.plan || "未設定";
+      planStats[planName] = (planStats[planName] || 0) + g._count;
+    });
 
     return NextResponse.json({
       summary: {
-        thisMonthSessionCount: thisMonthSessions.length,
-        lastMonthSessionCount: lastMonthSessions.length,
+        thisMonthSessionCount,
+        lastMonthSessionCount,
         thisMonthMeasurements,
         durationCount,
         experienceCount,
         newEnrollments,
         enrollmentRate: enrollmentRate.toFixed(1),
-        totalCustomers: allCustomers.length,
-        thisMonthRevenue,
-        lastMonthRevenue
+        totalCustomers,
+        thisMonthRevenue: Math.round(thisMonthRevenue),
+        lastMonthRevenue: Math.round(lastMonthRevenue)
       },
       planStats
     });
