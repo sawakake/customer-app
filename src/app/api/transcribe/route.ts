@@ -5,10 +5,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Whisper APIの上限：25MB
+const MAX_FILE_SIZE_MB = 25;
+
 export async function POST(request: Request) {
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
-      { error: 'OpenAI APIキーが設定されていません。.envファイルを確認してください。' },
+      { error: 'OpenAI APIキーが設定されていません。' },
       { status: 500 }
     );
   }
@@ -18,7 +21,18 @@ export async function POST(request: Request) {
     const audioFile = formData.get('audio') as File;
 
     if (!audioFile) {
-      return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
+      return NextResponse.json({ error: '音声ファイルがありません' }, { status: 400 });
+    }
+
+    // ファイルサイズチェック
+    const fileSizeMB = audioFile.size / (1024 * 1024);
+    if (fileSizeMB > MAX_FILE_SIZE_MB) {
+      return NextResponse.json(
+        {
+          error: `ファイルサイズが上限を超えています (${fileSizeMB.toFixed(1)}MB / 上限 ${MAX_FILE_SIZE_MB}MB)。チャンク分割設定を確認してください。`,
+        },
+        { status: 413 }
+      );
     }
 
     const transcription = await openai.audio.transcriptions.create({
@@ -27,12 +41,20 @@ export async function POST(request: Request) {
       language: 'ja',
     });
 
-    return NextResponse.json({ text: transcription.text });
+    return NextResponse.json({
+      text: transcription.text,
+      fileSizeMB: fileSizeMB.toFixed(2),
+    });
   } catch (error: any) {
     console.error('Transcription error:', error);
+
+    // OpenAI APIからの詳細エラーを返す
+    const detail = error?.error?.message || error?.message || '不明なエラー';
+    const statusCode = error?.status || 500;
+
     return NextResponse.json(
-      { error: `文字起こしに失敗しました: ${error.message || 'APIキーが無効な可能性があります。'}` },
-      { status: 500 }
+      { error: `Whisper API エラー: ${detail}` },
+      { status: statusCode }
     );
   }
 }

@@ -100,5 +100,127 @@
   font-size: 0.8rem;
   color: var(--secondary-foreground);
   text-align: center;
-  max-width: 300px;
+  max-width: 340px;
+}
+
+/* ===== 経過時間 ===== */
+.timer {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--destructive);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+/* ===== チャンク進捗 ===== */
+.chunkList {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 1rem 0;
+}
+
+.chunkItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  background: var(--secondary);
+  flex-wrap: wrap;
+}
+
+.chunkItem.done {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.chunkItem.error {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.chunkItem.transcribing {
+  background: #fef9ef;
+  color: var(--primary);
+}
+
+.chunkItem.pending {
+  color: var(--secondary-foreground);
+}
+
+.chunkLabel {
+  font-weight: 600;
+}
+
+.chunkError {
+  width: 100%;
+  font-size: 0.72rem;
+  color: #dc2626;
+  padding-left: 1.5rem;
+  word-break: break-all;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--secondary-foreground);
+  flex-shrink: 0;
+}
+
+/* ===== エラーボックス ===== */
+.errorBox {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  margin: 0.5rem 0;
+  word-break: break-word;
+}
+
+/* ===== デバッグエリア ===== */
+.debugSection {
+  width: 100%;
+  max-width: 380px;
+  margin-top: 0.75rem;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.debugToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--secondary);
+  border: none;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--secondary-foreground);
+  font-weight: 600;
+}
+
+.debugText {
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--foreground);
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 0;
 }
