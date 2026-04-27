@@ -1,18 +1,38 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Mic, Square, Loader2, ChevronDown, ChevronUp, AlertCircle, CheckCircle2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import {
+  Mic, Square, Loader2, ChevronDown, ChevronUp,
+  AlertCircle, CheckCircle2, RefreshCw, RotateCcw
+} from "lucide-react";
 import styles from "./VoiceRecorder.module.css";
 
-// 5分ごとにチャンク化（ミリ秒）
-const CHUNK_INTERVAL_MS = 5 * 60 * 1000;
+// =============================================
+// 定数
+// =============================================
+const CHUNK_INTERVAL_MS = 5 * 60 * 1000; // 5分ごとにチャンク化
+const MAX_RETRIES = 3;                     // Whisper最大リトライ回数
+const RETRY_DELAY_BASE_MS = 2000;          // リトライ初期待機時間（指数バックオフ）
+const LS_KEY = "voicerecorder_draft";      // localStorage キー
 
+// =============================================
+// 型定義
+// =============================================
 interface ChunkStatus {
   index: number;
-  status: "pending" | "transcribing" | "done" | "error";
+  status: "pending" | "transcribing" | "retrying" | "done" | "error" | "skipped";
   text?: string;
   error?: string;
-  durationMin: number;
+  retryCount?: number;
+  durationStart: number; // 分
+  durationEnd: number;   // 分
+  fileSizeMB?: string;
+}
+
+interface DraftData {
+  chunkStatuses: ChunkStatus[];
+  fullTranscript: string;
+  savedAt: string;
 }
 
 interface VoiceRecorderProps {
@@ -25,6 +45,20 @@ interface VoiceRecorderProps {
   }) => void;
 }
 
+// =============================================
+// ユーティリティ
+// =============================================
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const formatTime = (sec: number) => {
+  const m = Math.floor(sec / 60).toString().padStart(2, "0");
+  const s = (sec % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+};
+
+// =============================================
+// コンポーネント本体
+// =============================================
 export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -34,16 +68,80 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
   const [fullTranscript, setFullTranscript] = useState("");
   const [showDebug, setShowDebug] = useState(false);
   const [elapsedSec, setElapsedSec] = useState(0);
+  const [draftData, setDraftData] = useState<DraftData | null>(null);
+  const [showRestore, setShowRestore] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  // timesliceで来る生チャンクをバッチ管理
-  const pendingBlobsRef = useRef<Blob[]>([]);
-  const chunkQueueRef = useRef<{ blob: Blob; index: number }[]>([]);
+  const chunkQueueRef = useRef<{ blob: Blob; index: number; startMin: number }[]>([]);
   const chunkIndexRef = useRef(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
+  const chunkCountRef = useRef(0); // 録音開始からのチャンク数
 
-  // 経過時間タイマー
+  // =============================================
+  // localStorage 復元チェック（マウント時）
+  // =============================================
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const parsed: DraftData = JSON.parse(raw);
+        if (parsed.chunkStatuses?.length > 0) {
+          setDraftData(parsed);
+          setShowRestore(true);
+        }
+      }
+    } catch {
+      // 壊れたデータは無視
+    }
+  }, []);
+
+  // =============================================
+  // localStorage 保存ヘルパー
+  // =============================================
+  const saveDraft = (chunks: ChunkStatus[], transcript: string) => {
+    try {
+      const draft: DraftData = {
+        chunkStatuses: chunks,
+        fullTranscript: transcript,
+        savedAt: new Date().toLocaleString("ja-JP"),
+      };
+      localStorage.setItem(LS_KEY, JSON.stringify(draft));
+    } catch {
+      // quota over などは無視
+    }
+  };
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(LS_KEY); } catch {}
+    setDraftData(null);
+    setShowRestore(false);
+  };
+
+  // 下書きを復元してGPT分析だけ再実行
+  const handleRestore = async () => {
+    if (!draftData) return;
+    setShowRestore(false);
+    setChunkStatuses(draftData.chunkStatuses);
+    setFullTranscript(draftData.fullTranscript);
+    setStatus("復元したテキストで再分析します...");
+    setIsProcessing(true);
+    await analyzeTranscript(draftData.fullTranscript);
+  };
+
+  // =============================================
+  // チャンクステータス更新ヘルパー
+  // =============================================
+  const updateChunk = (index: number, update: Partial<ChunkStatus>) => {
+    setChunkStatuses(prev => {
+      const next = prev.map(c => c.index === index ? { ...c, ...update } : c);
+      return next;
+    });
+  };
+
+  // =============================================
+  // 録音タイマー
+  // =============================================
   const startTimer = () => {
     startTimeRef.current = Date.now();
     timerRef.current = setInterval(() => {
@@ -52,73 +150,63 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
   };
 
   const stopTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   };
 
-  const formatTime = (sec: number) => {
-    const m = Math.floor(sec / 60).toString().padStart(2, "0");
-    const s = (sec % 60).toString().padStart(2, "0");
-    return `${m}:${s}`;
-  };
-
-  // チャンクステータスを更新するヘルパー
-  const updateChunk = (index: number, update: Partial<ChunkStatus>) => {
-    setChunkStatuses(prev =>
-      prev.map(c => c.index === index ? { ...c, ...update } : c)
-    );
-  };
-
+  // =============================================
+  // 録音開始
+  // =============================================
   const startRecording = async () => {
     try {
+      // リセット
       setChunkStatuses([]);
       setAnalysisError("");
       setFullTranscript("");
+      setStatus("");
       chunkIndexRef.current = 0;
-      pendingBlobsRef.current = [];
+      chunkCountRef.current = 0;
       chunkQueueRef.current = [];
+      clearDraft();
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // サポートしているMIMEタイプを選択
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : MediaRecorder.isTypeSupported("audio/webm")
-        ? "audio/webm"
-        : "audio/ogg";
+      const mimeType = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/mp4",
+        "audio/ogg;codecs=opus",
+      ].find(t => MediaRecorder.isTypeSupported(t)) ?? "";
 
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType,
-        audioBitsPerSecond: 64000, // 64kbps：5分 ≒ 2.4MB
+        ...(mimeType ? { mimeType } : {}),
+        audioBitsPerSecond: 64000,
       });
 
       mediaRecorderRef.current = mediaRecorder;
 
-      // timeslice によって CHUNK_INTERVAL_MS ごとに ondataavailable が発火
+      // timeslice により 5分ごとに ondataavailable が発火
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          const currentIndex = chunkIndexRef.current;
-          chunkIndexRef.current += 1;
-          const durationMin = Math.round(currentIndex * (CHUNK_INTERVAL_MS / 1000 / 60));
+        if (!event.data || event.data.size === 0) return;
 
-          // UIにチャンクを追加
-          setChunkStatuses(prev => [
-            ...prev,
-            { index: currentIndex, status: "pending", durationMin }
-          ]);
+        const currentIndex = chunkIndexRef.current;
+        const startMin = chunkCountRef.current * 5;
+        const endMin = startMin + 5;
+        chunkIndexRef.current += 1;
+        chunkCountRef.current += 1;
 
-          chunkQueueRef.current.push({ blob: event.data, index: currentIndex });
-        }
+        setChunkStatuses(prev => [
+          ...prev,
+          { index: currentIndex, status: "pending", durationStart: startMin, durationEnd: endMin }
+        ]);
+        chunkQueueRef.current.push({ blob: event.data, index: currentIndex, startMin });
       };
 
       mediaRecorder.onstop = async () => {
         stopTimer();
         setIsRecording(false);
-        setStatus("文字起こしを開始します...");
+        setStatus("チャンクの文字起こしを開始します...");
         setIsProcessing(true);
-        await processAllChunks(mimeType);
+        await processAllChunks(mimeType || "audio/webm");
       };
 
       mediaRecorder.start(CHUNK_INTERVAL_MS);
@@ -126,11 +214,13 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
       setStatus("録音中");
       startTimer();
     } catch (err: any) {
-      console.error("録音開始エラー:", err);
       setStatus(`録音を開始できませんでした: ${err.message}`);
     }
   };
 
+  // =============================================
+  // 録音停止
+  // =============================================
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
@@ -139,65 +229,115 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
     }
   };
 
-  // 各チャンクを順番にWhisperへ送信
-  const processAllChunks = async (mimeType: string) => {
-    const queue = chunkQueueRef.current;
-    const transcripts: string[] = [];
-    const ext = mimeType.includes("ogg") ? "ogg" : "webm";
+  // =============================================
+  // Whisper送信（リトライ付き）
+  // =============================================
+  const transcribeWithRetry = async (
+    blob: Blob,
+    index: number,
+    startMin: number,
+    ext: string
+  ): Promise<string | null> => {
+    const labelRange = `${startMin}〜${startMin + 5}分`;
 
-    for (const { blob, index } of queue) {
-      updateChunk(index, { status: "transcribing" });
-      const minuteLabel = `${index * 5 + 1}〜${(index + 1) * 5}分目`;
-      setStatus(`文字起こし中... (${minuteLabel} / 全${queue.length}チャンク)`);
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      if (attempt > 1) {
+        const waitMs = RETRY_DELAY_BASE_MS * Math.pow(2, attempt - 2); // 2s, 4s
+        updateChunk(index, {
+          status: "retrying",
+          retryCount: attempt - 1,
+          error: `リトライ ${attempt - 1}回目 (${waitMs / 1000}秒後)...`,
+        });
+        await sleep(waitMs);
+      }
 
       try {
         const formData = new FormData();
         formData.append("audio", blob, `chunk_${index}.${ext}`);
 
-        const res = await fetch("/api/transcribe", {
-          method: "POST",
-          body: formData,
-        });
+        const res = await fetch("/api/transcribe", { method: "POST", body: formData });
 
-        const contentType = res.headers.get("content-type") || "";
-        if (!contentType.includes("application/json")) {
-          const rawText = await res.text();
-          throw new Error(`サーバーエラー (HTML返却): ${rawText.substring(0, 100)}`);
+        const ct = res.headers.get("content-type") || "";
+        if (!ct.includes("application/json")) {
+          throw new Error(`サーバーエラー (非JSON返却, status=${res.status})`);
         }
 
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 
-        transcripts.push(data.text);
-        updateChunk(index, { status: "done", text: data.text });
-      } catch (err: any) {
-        const errorMsg = err.message || "不明なエラー";
         updateChunk(index, {
-          status: "error",
-          error: `${minuteLabel}で失敗: ${errorMsg}`,
+          status: "done",
+          text: data.text,
+          error: undefined,
+          retryCount: attempt - 1,
+          fileSizeMB: data.fileSizeMB,
         });
-        // エラーでも続行（部分的な文字起こしで分析を試みる）
-        transcripts.push(`[${minuteLabel} 文字起こし失敗]`);
+        return data.text;
+      } catch (err: any) {
+        const msg = err.message || "不明なエラー";
+        console.error(`[Chunk ${index} / ${labelRange}] attempt ${attempt} failed: ${msg}`);
+
+        if (attempt === MAX_RETRIES) {
+          updateChunk(index, {
+            status: "error",
+            error: `${labelRange}で失敗（${MAX_RETRIES}回試行）: ${msg}`,
+            retryCount: attempt,
+          });
+          return null;
+        }
+      }
+    }
+    return null;
+  };
+
+  // =============================================
+  // 全チャンク処理（順番に実行）
+  // =============================================
+  const processAllChunks = async (mimeType: string) => {
+    const queue = chunkQueueRef.current;
+    const transcripts: string[] = [];
+    const ext = mimeType.includes("mp4") ? "mp4" : mimeType.includes("ogg") ? "ogg" : "webm";
+
+    let successCount = 0;
+
+    for (const { blob, index, startMin } of queue) {
+      updateChunk(index, { status: "transcribing" });
+      setStatus(`文字起こし中... (${startMin}〜${startMin + 5}分 / 全${queue.length}チャンク)`);
+
+      const text = await transcribeWithRetry(blob, index, startMin, ext);
+
+      if (text) {
+        transcripts.push(text);
+        successCount++;
+      } else {
+        transcripts.push(`[${startMin}〜${startMin + 5}分：文字起こし失敗]`);
       }
     }
 
-    // 全チャンク完了後、テキストを結合してGPT-4oへ
     const combined = transcripts.join("\n\n");
     setFullTranscript(combined);
 
-    if (!combined.trim() || combined.split("[").length - 1 === queue.length) {
-      setStatus("文字起こしに全て失敗しました。音声を確認してください。");
+    // localStorage に一時保存
+    const latestChunks = chunkQueueRef.current.map((_, i) => {
+      return chunkStatuses[i];
+    });
+    saveDraft(latestChunks, combined);
+
+    if (successCount === 0) {
+      setStatus("❌ 全チャンクの文字起こしに失敗しました。");
       setIsProcessing(false);
       return;
     }
 
+    setStatus(`文字起こし完了（${successCount}/${queue.length}チャンク成功）。AIで分析中...`);
     await analyzeTranscript(combined);
   };
 
+  // =============================================
+  // GPT-4o 分析
+  // =============================================
   const analyzeTranscript = async (text: string) => {
-    setStatus("AIでセッション内容を分析中...");
     setAnalysisError("");
-
     try {
       const res = await fetch("/api/analyze-session", {
         method: "POST",
@@ -205,8 +345,8 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
         body: JSON.stringify({ text }),
       });
 
-      const contentType = res.headers.get("content-type") || "";
-      if (!contentType.includes("application/json")) {
+      const ct = res.headers.get("content-type") || "";
+      if (!ct.includes("application/json")) {
         throw new Error("GPT-4o分析中にサーバーエラーが発生しました（HTML返却）");
       }
 
@@ -214,19 +354,54 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
       if (data.error) throw new Error(data.error);
 
       onAnalysisComplete(data);
+      clearDraft(); // 分析成功したら下書き削除
       setStatus("✅ 分析完了！フォームに自動入力しました。");
     } catch (err: any) {
-      const errorMsg = err.message || "不明なエラー";
-      setAnalysisError(`GPT-4o分析エラー: ${errorMsg}`);
-      setStatus("分析に失敗しました。文字起こし結果は下のデバッグ欄で確認できます。");
+      const msg = err.message || "不明なエラー";
+      setAnalysisError(`GPT-4o 分析エラー: ${msg}`);
+      setStatus("⚠️ 分析に失敗しました。文字起こし結果は保存されています。");
+      // 分析失敗時は下書きを保持したままにする
     } finally {
       setIsProcessing(false);
     }
   };
 
+  // 分析のみ手動で再実行
+  const handleReanalyze = async () => {
+    if (!fullTranscript) return;
+    setIsProcessing(true);
+    setStatus("再分析中...");
+    await analyzeTranscript(fullTranscript);
+  };
+
+  // =============================================
+  // レンダリング
+  // =============================================
+  const doneCount = chunkStatuses.filter(c => c.status === "done").length;
+  const errorCount = chunkStatuses.filter(c => c.status === "error").length;
+
   return (
     <div className={styles.recorderContainer}>
-      {/* 録音コントロール */}
+
+      {/* 下書き復元バナー */}
+      {showRestore && draftData && (
+        <div className={styles.restoreBanner}>
+          <div className={styles.restoreInfo}>
+            <RefreshCw size={16} />
+            <span>前回の録音データが残っています（{draftData.savedAt}）</span>
+          </div>
+          <div className={styles.restoreActions}>
+            <button type="button" className={styles.restoreBtn} onClick={handleRestore}>
+              復元して再分析
+            </button>
+            <button type="button" className={styles.discardBtn} onClick={clearDraft}>
+              破棄
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* マイクアイコン */}
       <div className={styles.visualizer}>
         {isRecording ? (
           <div className={styles.pulseContainer}>
@@ -245,6 +420,7 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
         <div className={styles.timer}>{formatTime(elapsedSec)}</div>
       )}
 
+      {/* 録音ボタン */}
       <div className={styles.controls}>
         {!isRecording ? (
           <button
@@ -266,50 +442,67 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
         )}
       </div>
 
-      {/* ステータスメッセージ */}
+      {/* ステータス */}
       {status && <div className={styles.status}>{status}</div>}
 
-      {/* チャンク進捗 */}
+      {/* チャンク進捗リスト */}
       {chunkStatuses.length > 0 && (
         <div className={styles.chunkList}>
+          <div className={styles.chunkSummary}>
+            チャンク処理: ✅ {doneCount} / ❌ {errorCount} / 合計 {chunkStatuses.length}
+          </div>
           {chunkStatuses.map(chunk => (
             <div key={chunk.index} className={`${styles.chunkItem} ${styles[chunk.status]}`}>
-              {chunk.status === "done" && <CheckCircle2 size={14} />}
-              {chunk.status === "error" && <AlertCircle size={14} />}
-              {chunk.status === "transcribing" && <Loader2 size={14} className={styles.spin} />}
-              {chunk.status === "pending" && <span className={styles.dot} />}
-              <span className={styles.chunkLabel}>
-                {chunk.durationMin}〜{chunk.durationMin + 5}分
-                {chunk.status === "transcribing" && " 文字起こし中..."}
-                {chunk.status === "done" && " 完了"}
-                {chunk.status === "error" && " エラー"}
+              <span className={styles.chunkIcon}>
+                {chunk.status === "done" && <CheckCircle2 size={14} />}
+                {chunk.status === "error" && <AlertCircle size={14} />}
+                {(chunk.status === "transcribing" || chunk.status === "retrying") &&
+                  <Loader2 size={14} className={styles.spin} />}
+                {chunk.status === "pending" && <span className={styles.dot} />}
+                {chunk.status === "skipped" && <span>—</span>}
               </span>
-              {chunk.error && (
-                <span className={styles.chunkError}>{chunk.error}</span>
-              )}
+              <div className={styles.chunkInfo}>
+                <span className={styles.chunkLabel}>
+                  {chunk.durationStart}〜{chunk.durationEnd}分
+                  {chunk.fileSizeMB && ` (${chunk.fileSizeMB}MB)`}
+                </span>
+                <span className={styles.chunkState}>
+                  {chunk.status === "done" && " ✅ 完了"}
+                  {chunk.status === "transcribing" && " 🔄 文字起こし中"}
+                  {chunk.status === "retrying" && ` 🔄 リトライ ${chunk.retryCount}回目`}
+                  {chunk.status === "error" && " ❌ 失敗・スキップ"}
+                  {chunk.status === "pending" && " 待機中"}
+                </span>
+                {chunk.error && chunk.status === "error" && (
+                  <div className={styles.chunkError}>{chunk.error}</div>
+                )}
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* GPT-4o分析エラー表示 */}
+      {/* GPT-4o 分析エラー */}
       {analysisError && (
         <div className={styles.errorBox}>
-          <AlertCircle size={16} />
-          <span>{analysisError}</span>
+          <AlertCircle size={16} style={{ flexShrink: 0 }} />
+          <div>
+            <div>{analysisError}</div>
+            {fullTranscript && (
+              <button type="button" className={styles.reanalyzeBtn} onClick={handleReanalyze} disabled={isProcessing}>
+                <RotateCcw size={14} /> 再分析する
+              </button>
+            )}
+          </div>
         </div>
       )}
 
-      {/* デバッグ：文字起こし全文（開発中のみ表示） */}
+      {/* デバッグ：文字起こし全文 */}
       {fullTranscript && (
         <div className={styles.debugSection}>
-          <button
-            type="button"
-            className={styles.debugToggle}
-            onClick={() => setShowDebug(p => !p)}
-          >
+          <button type="button" className={styles.debugToggle} onClick={() => setShowDebug(p => !p)}>
             {showDebug ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            文字起こし全文（デバッグ用）
+            文字起こし全文・デバッグ表示（{fullTranscript.length}文字）
           </button>
           {showDebug && (
             <pre className={styles.debugText}>{fullTranscript}</pre>
@@ -318,7 +511,8 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
       )}
 
       <div className={styles.hint}>
-        録音中は5分ごとに自動チャンク化されます。60分のセッションも問題ありません。
+        録音は5分ごとに自動分割されます。60分のセッションも問題ありません。
+        チャンクが失敗しても処理は続行されます。
       </div>
     </div>
   );
