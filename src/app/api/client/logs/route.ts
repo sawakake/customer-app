@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const role = (session.user as any).role;
     if (role !== "customer") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { type, title, content, imageUrl } = await request.json();
+    const { type, title, content, imageUrl, weight, bodyFat } = await request.json();
     if (!type || !content) return NextResponse.json({ error: "type and content are required" }, { status: 400 });
 
     const log = await prisma.customerLog.create({
@@ -21,6 +21,8 @@ export async function POST(request: Request) {
         title: title || null,
         content,
         imageUrl: imageUrl || null,
+        weight: weight ? parseFloat(weight) : null,
+        bodyFat: bodyFat ? parseFloat(bodyFat) : null,
       }
     });
 

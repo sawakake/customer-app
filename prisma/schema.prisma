@@ -60,6 +60,8 @@ model CustomerLog {
   title       String?  // 内容の短い見出し
   content     String?  // 詳細テキスト
   imageUrl    String?  // 食事写真などのURL
+  weight      Float?   // 日記用
+  bodyFat     Float?   // 日記用
   date        DateTime @default(now())
   createdAt   DateTime @default(now())
 }

@@ -3,22 +3,22 @@
   background: #f8f4ef;
 }
 
-/* ===== Header ===== */
-.header {
+.topBar {
   background: white;
   border-bottom: 1px solid #f0e8dc;
-  padding: 16px 20px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 100;
 }
 
-.headerContent {
-  max-width: 680px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+@media (min-width: 1024px) {
+  .topBar {
+    display: none; /* デスクトップではサイドバーがあるため隠す */
+  }
 }
 
 .brandRow {
@@ -28,48 +28,53 @@
 }
 
 .headerLogo {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
+  width: 28px;
+  height: 28px;
 }
 
 .brandName {
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 0.85rem;
   color: #ff8a00;
 }
 
-.userGreeting {
-  flex: 1;
+@media (max-width: 480px) {
+  .brandName {
+    display: none; /* スマホではロゴのみ表示 */
+  }
+}
+
+.logoutBtn {
+  font-size: 0.7rem;
+  color: #999;
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid #eee;
+  border-radius: 20px;
+}
+
+/* ===== Hero ===== */
+.heroSection {
+  padding: 24px 16px 16px;
 }
 
 .welcomeText {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #999;
   margin: 0;
 }
 
 .userName {
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  color: #222;
-  margin: 0;
-}
-
-.logoutBtn {
-  font-size: 0.75rem;
-  color: #aaa;
-  text-decoration: none;
-  padding: 6px 12px;
-  border: 1px solid #eee;
-  border-radius: 20px;
+  margin: 4px 0 0;
 }
 
 /* ===== Main ===== */
 .main {
   max-width: 680px;
   margin: 0 auto;
-  padding: 20px 16px 80px;
+  padding: 0 16px 100px; /* ボトムナビの分だけ下を空ける */
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -118,6 +123,18 @@
   gap: 12px;
 }
 
+@media (max-width: 600px) {
+  .actionGrid {
+    grid-template-columns: repeat(2, 1fr); /* 2カラムにして1つは下へ、または1カラム */
+  }
+  .actionGrid a:last-child {
+    grid-column: span 2; /* 最後の1つ（日記）を全幅に */
+    flex-direction: row;
+    padding: 16px;
+    gap: 20px;
+  }
+}
+
 .actionCard {
   display: flex;
   flex-direction: column;
@@ -138,8 +155,14 @@
 }
 
 .mealCard { background: linear-gradient(135deg, #f6d365, #fda085); }
-.workoutCard { background: linear-gradient(135deg, #ff8a00, #ff5f40); }
-.diaryCard { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
+.workoutCard { background: linear-gradient(135deg, #ff8a00, #ff6b35); }
+.diaryCard { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+@media (max-width: 480px) {
+  .metricsGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
 
 /* ===== Section ===== */
 .section {

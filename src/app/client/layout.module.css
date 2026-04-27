@@ -1,0 +1,141 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f8f4ef;
+}
+
+/* ===== Desktop Sidebar (Horizontal > 1024px) ===== */
+.desktopSidebar {
+  width: 240px;
+  background: white;
+  border-right: 1px solid #f0e8dc;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  position: fixed;
+  height: 100vh;
+  z-index: 100;
+}
+
+@media (max-width: 1023px) {
+  .desktopSidebar {
+    display: none;
+  }
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+  padding-left: 8px;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.brandName {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #ff8a00;
+}
+
+.desktopNav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: #666;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.navItem:hover {
+  background: #fff5eb;
+  color: #ff8a00;
+}
+
+.navItemActive {
+  background: #ff8a00;
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 138, 0, 0.2);
+}
+
+.sidebarLogout {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #aaa;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+/* ===== Content Wrapper ===== */
+.contentWrapper {
+  flex: 1;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .contentWrapper {
+    margin-left: 240px;
+  }
+}
+
+.main {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ===== Mobile Bottom Nav ===== */
+.bottomNav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: white;
+  border-top: 1px solid #f0e8dc;
+  padding: 8px 0 env(safe-area-inset-bottom);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+@media (min-width: 1024px) {
+  .bottomNav {
+    display: none;
+  }
+}
+
+.bottomNavItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #aaa;
+  text-decoration: none;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex: 1;
+  padding: 4px 0;
+}
+
+.bottomNavActive {
+  color: #ff8a00;
+}

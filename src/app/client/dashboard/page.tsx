@@ -76,22 +76,20 @@ export default async function ClientDashboard() {
 
   return (
     <div className={styles.container}>
-      {/* ヘッダー */}
-      <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <div className={styles.brandRow}>
-            <img src="/images/gym-logo.png" alt="Logo" className={styles.headerLogo} />
-            <span className={styles.brandName}>BodyCareGymCONNECT</span>
-          </div>
-          <div className={styles.userGreeting}>
-            <p className={styles.welcomeText}>おかえりなさい！</p>
-            <h1 className={styles.userName}>{customerWithData.name} さん</h1>
-          </div>
-          <Link href="/api/auth/signout" className={styles.logoutBtn}>ログアウト</Link>
+      <header className={styles.topBar}>
+        <div className={styles.brandRow}>
+          <img src="/images/gym-logo.png" alt="Logo" className={styles.headerLogo} />
+          <span className={styles.brandName}>BodyCareGymCONNECT</span>
         </div>
+        <Link href="/api/auth/signout" className={styles.logoutBtn}>ログアウト</Link>
       </header>
 
       <main className={styles.main}>
+        <div className={styles.heroSection}>
+          <p className={styles.welcomeText}>おかえりなさい！</p>
+          <h1 className={styles.userName}>{customerWithData.name} さん</h1>
+        </div>
+
         {/* 目標カード */}
         {currentGoal && (
           <div className={styles.goalBanner}>
@@ -173,7 +171,7 @@ export default async function ClientDashboard() {
               <Link href="/client/log/new" className={styles.addBtn}><Plus size={16} /> 追加</Link>
             </div>
             <div className={styles.logList}>
-              {customerWithData.customerLogs.map((log: any) => (
+              {customerWithData.customerLogs.slice(0, 3).map((log: any) => (
                 <div key={log.id} className={styles.logItem}>
                   <div className={styles.logType}>
                     {log.type === 'Meal' ? <Coffee size={16} /> : log.type === 'Workout' ? <Dumbbell size={16} /> : <BookOpen size={16} />}
@@ -187,6 +185,11 @@ export default async function ClientDashboard() {
                 </div>
               ))}
             </div>
+            {customerWithData.customerLogs.length > 3 && (
+              <Link href="/client/log/history" className={styles.viewAllBtn} style={{ display: 'block', textAlign: 'center', padding: '1rem', color: 'var(--primary)', fontSize: '0.9rem', fontWeight: 'bold', textDecoration: 'none', borderTop: '1px solid #f0f0f0' }}>
+                過去の記録をすべて見る <ChevronRight size={16} style={{ verticalAlign: 'middle' }} />
+              </Link>
+            )}
           </section>
         )}
 
@@ -225,7 +228,7 @@ export default async function ClientDashboard() {
 
         {/* AIレポート */}
         {customerWithData.reports.length > 0 && (
-          <section className={styles.section}>
+          <section id="reports" className={styles.section}>
             <h2 className={styles.sectionTitle}><Sparkles size={20} /> AIコーチングレポート</h2>
             <div className={styles.reportList}>
               {customerWithData.reports.map((report: any) => (

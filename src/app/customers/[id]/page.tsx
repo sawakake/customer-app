@@ -140,6 +140,10 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
               <div className={styles.infoValue}>{customer.phone}</div>
             </div>
             <div className={styles.infoItem}>
+              <label>メールアドレス</label>
+              <div className={styles.infoValue} style={{ fontSize: '0.8rem' }}>{customer.email}</div>
+            </div>
+            <div className={styles.infoItem}>
               <label>現在のステータス</label>
               <div className={styles.statusBadge}>{customer.status || '入会済み'}</div>
             </div>
@@ -227,8 +231,9 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
       </div>
 
       <div className="card" style={{ marginBottom: '2rem' }}>
-        <h2 className={styles.sectionTitle}>
+        <h2 className={styles.sectionTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           初回アンケート回答
+          <span style={{ fontSize: '0.75rem', color: '#999', fontWeight: 'normal' }}>回答日: {new Date(customer.createdAt).toLocaleDateString('ja-JP')}</span>
         </h2>
         <div className={styles.surveyBlock}>
           <div className={styles.surveyItem}>

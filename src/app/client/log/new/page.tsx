@@ -19,6 +19,8 @@ function ClientLogNewContent() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [weight, setWeight] = useState("");
+  const [bodyFat, setBodyFat] = useState("");
   const [isCompressing, setIsCompressing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -50,7 +52,14 @@ function ClientLogNewContent() {
       const res = await fetch("/api/client/logs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, title, content, imageUrl }),
+        body: JSON.stringify({ 
+          type, 
+          title, 
+          content, 
+          imageUrl,
+          weight: type === 'Diary' ? weight : null,
+          bodyFat: type === 'Diary' ? bodyFat : null
+        }),
       });
       if (res.ok) {
         router.push("/client/dashboard");
@@ -104,6 +113,36 @@ function ClientLogNewContent() {
           />
         </div>
 
+        </div>
+
+        {/* 日記限定: 体重・体脂肪 */}
+        {type === 'Diary' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>体重 (kg)</label>
+              <input
+                type="number"
+                step="0.1"
+                className={styles.input}
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="0.0"
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>体脂肪率 (%)</label>
+              <input
+                type="number"
+                step="0.1"
+                className={styles.input}
+                value={bodyFat}
+                onChange={(e) => setBodyFat(e.target.value)}
+                placeholder="0.0"
+              />
+            </div>
+          </div>
+        )}
+
         {/* 本文 */}
         <div className={styles.inputGroup}>
           <label className={styles.label}>内容</label>
@@ -150,6 +189,19 @@ function ClientLogNewContent() {
               写真を削除
             </button>
           )}
+        </div>
+
+        {/* 下部の保存ボタン */}
+        <div style={{ marginTop: '2rem', paddingBottom: '2rem' }}>
+          <button 
+            onClick={handleSave} 
+            disabled={isSaving || !content} 
+            className={styles.saveBtn}
+            style={{ width: '100%', height: '54px', borderRadius: '12px', fontSize: '1rem', justifyContent: 'center' }}
+          >
+            <Save size={20} style={{ marginRight: '0.5rem' }} /> 
+            {isSaving ? "保存中..." : "この内容で保存する"}
+          </button>
         </div>
       </main>
     </div>
