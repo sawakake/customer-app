@@ -93,10 +93,9 @@ function ClientLogNewContent() {
               key={key}
               onClick={() => setType(key)}
               className={`${styles.typeBtn} ${type === key ? styles.typeBtnActive : ""}`}
-              style={type === key ? { background: config.color } : {}}
             >
-              <config.icon size={18} />
-              {key === "Meal" ? "食事" : key === "Workout" ? "自主トレ" : "日記"}
+              <config.icon size={20} />
+              <span>{config.label.replace("記録", "")}</span>
             </button>
           ))}
         </div>
@@ -115,9 +114,9 @@ function ClientLogNewContent() {
 
         {/* 日記限定: 体重・体脂肪 */}
         {type === 'Diary' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>体重 (kg)</label>
+          <div className={styles.metricsRow}>
+            <div className={styles.metricInputWrapper}>
+              <label className={styles.label}>体重 <span className={styles.unit}>kg</span></label>
               <input
                 type="number"
                 step="0.1"
@@ -127,8 +126,8 @@ function ClientLogNewContent() {
                 placeholder="0.0"
               />
             </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>体脂肪率 (%)</label>
+            <div className={styles.metricInputWrapper}>
+              <label className={styles.label}>体脂肪率 <span className={styles.unit}>%</span></label>
               <input
                 type="number"
                 step="0.1"

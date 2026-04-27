@@ -153,9 +153,9 @@ export default async function ClientDashboard() {
             </div>
 
             {/* 身体データ推移グラフ */}
-            <div className={styles.chartSection} style={{ marginTop: '1.5rem', background: '#fff', padding: '1rem', borderRadius: '12px', border: '1px solid #eaeaea' }}>
-              <h3 className={styles.sectionTitle} style={{ fontSize: '1.1rem', marginBottom: '1rem', border: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <TrendingUp size={18} color="var(--primary)" /> 身体データ推移
+            <div className={styles.chartSection}>
+              <h3 className={styles.sectionTitle}>
+                <TrendingUp size={22} color="var(--primary)" /> 身体データ推移
               </h3>
               <MetricsChart metrics={chartMetrics} />
             </div>
