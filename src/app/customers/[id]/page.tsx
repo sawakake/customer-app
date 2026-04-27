@@ -244,7 +244,6 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
             <p>{customer.desiredServices || "回答なし"}</p>
           </div>
         </div>
-        </div>
       </div>
 
       <div className="card" style={{ marginBottom: '2rem' }}>

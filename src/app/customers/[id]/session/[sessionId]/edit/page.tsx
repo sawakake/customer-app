@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import styles from "./page.module.css";
+import styles from "../../new/page.module.css";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import { compressImageToBase64 } from "@/lib/imageUtils";
 import {
