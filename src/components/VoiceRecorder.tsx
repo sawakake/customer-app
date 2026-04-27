@@ -10,7 +10,7 @@ import styles from "./VoiceRecorder.module.css";
 // =============================================
 // 定数
 // =============================================
-const CHUNK_INTERVAL_MS = 5 * 60 * 1000; // 5分ごとにチャンク化
+const CHUNK_INTERVAL_MS = 2 * 60 * 1000; // 2分ごとにチャンク化（タイムアウト対策）
 const MAX_RETRIES = 3;                     // Whisper最大リトライ回数
 const RETRY_DELAY_BASE_MS = 2000;          // リトライ初期待機時間（指数バックオフ）
 const LS_KEY = "voicerecorder_draft";      // localStorage キー
@@ -77,6 +77,8 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const chunkCountRef = useRef(0); // 録音開始からのチャンク数
+  const transcriptsMapRef = useRef<Map<number, string>>(new Map());
+  const wakeLockRef = useRef<any>(null);
 
   // =============================================
   // localStorage 復元チェック（マウント時）
@@ -184,29 +186,49 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
 
       mediaRecorderRef.current = mediaRecorder;
 
-      // timeslice により 5分ごとに ondataavailable が発火
-      mediaRecorder.ondataavailable = (event) => {
+      // Wake Lock リクエスト（サポートされている場合）
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+        } catch (err) {
+          console.warn("Wake Lock request failed:", err);
+        }
+      }
+
+      // timeslice により定期的に ondataavailable が発火
+      mediaRecorder.ondataavailable = async (event) => {
         if (!event.data || event.data.size === 0) return;
 
         const currentIndex = chunkIndexRef.current;
-        const startMin = chunkCountRef.current * 5;
-        const endMin = startMin + 5;
+        const startMin = (elapsedSec / 60); // おおよその開始分
+        const endMin = startMin + (CHUNK_INTERVAL_MS / 60000);
         chunkIndexRef.current += 1;
-        chunkCountRef.current += 1;
 
         setChunkStatuses(prev => [
           ...prev,
-          { index: currentIndex, status: "pending", durationStart: startMin, durationEnd: endMin }
+          { index: currentIndex, status: "pending", durationStart: Math.floor(startMin), durationEnd: Math.ceil(endMin) }
         ]);
-        chunkQueueRef.current.push({ blob: event.data, index: currentIndex, startMin });
+
+        // 録音中からバックグラウンドで文字起こし開始
+        transcribeChunk(event.data, currentIndex, Math.floor(startMin), mimeType || "audio/webm");
       };
 
       mediaRecorder.onstop = async () => {
         stopTimer();
         setIsRecording(false);
-        setStatus("チャンクの文字起こしを開始します...");
+        
+        // Wake Lock 解除
+        if (wakeLockRef.current) {
+          await wakeLockRef.current.release();
+          wakeLockRef.current = null;
+        }
+
+        setStatus("残りのチャンクを処理しています...");
         setIsProcessing(true);
-        await processAllChunks(mimeType || "audio/webm");
+        
+        // 全てのチャンクが完了するのを待機
+        await waitForAllChunks();
+        await finalizeTranscription();
       };
 
       mediaRecorder.start(CHUNK_INTERVAL_MS);
@@ -290,46 +312,61 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
     return null;
   };
 
-  // =============================================
-  // 全チャンク処理（順番に実行）
-  // =============================================
-  const processAllChunks = async (mimeType: string) => {
-    const queue = chunkQueueRef.current;
-    const transcripts: string[] = [];
+  // 個別チャンクの文字起こし（録音中に並列実行）
+  const transcribeChunk = async (blob: Blob, index: number, startMin: number, mimeType: string) => {
     const ext = mimeType.includes("mp4") ? "mp4" : mimeType.includes("ogg") ? "ogg" : "webm";
+    updateChunk(index, { status: "transcribing" });
+    
+    const text = await transcribeWithRetry(blob, index, startMin, ext);
+    if (text) {
+      transcriptsMapRef.current.set(index, text);
+    } else {
+      transcriptsMapRef.current.set(index, `[${startMin}分付近：文字起こし失敗]`);
+    }
+  };
 
-    let successCount = 0;
-
-    for (const { blob, index, startMin } of queue) {
-      updateChunk(index, { status: "transcribing" });
-      setStatus(`文字起こし中... (${startMin}〜${startMin + 5}分 / 全${queue.length}チャンク)`);
-
-      const text = await transcribeWithRetry(blob, index, startMin, ext);
-
-      if (text) {
-        transcripts.push(text);
-        successCount++;
-      } else {
-        transcripts.push(`[${startMin}〜${startMin + 5}分：文字起こし失敗]`);
+  // 全チャンクの完了を待機
+  const waitForAllChunks = async () => {
+    let allDone = false;
+    while (!allDone) {
+      const currentStatuses = await new Promise<ChunkStatus[]>(resolve => {
+        setChunkStatuses(prev => {
+          resolve(prev);
+          return prev;
+        });
+      });
+      
+      allDone = currentStatuses.every(c => c.status === "done" || c.status === "error");
+      if (!allDone) {
+        const pendingCount = currentStatuses.filter(c => c.status !== "done" && c.status !== "error").length;
+        setStatus(`残りのチャンクを処理中... (残り${pendingCount}個)`);
+        await sleep(1000);
       }
     }
+  };
 
+  // 最終的な文字起こし結果の統合と分析
+  const finalizeTranscription = async () => {
+    const sortedIndices = Array.from(transcriptsMapRef.current.keys()).sort((a, b) => a - b);
+    const transcripts = sortedIndices.map(i => transcriptsMapRef.current.get(i));
     const combined = transcripts.join("\n\n");
+    
     setFullTranscript(combined);
 
-    // localStorage に一時保存
-    const latestChunks = chunkQueueRef.current.map((_, i) => {
-      return chunkStatuses[i];
+    // localStorage 保存用
+    const currentStatuses = await new Promise<ChunkStatus[]>(resolve => {
+      setChunkStatuses(prev => { resolve(prev); return prev; });
     });
-    saveDraft(latestChunks, combined);
+    saveDraft(currentStatuses, combined);
 
+    const successCount = currentStatuses.filter(c => c.status === "done").length;
     if (successCount === 0) {
-      setStatus("❌ 全チャンクの文字起こしに失敗しました。");
+      setStatus("❌ 文字起こしに失敗しました。");
       setIsProcessing(false);
       return;
     }
 
-    setStatus(`文字起こし完了（${successCount}/${queue.length}チャンク成功）。AIで分析中...`);
+    setStatus(`文字起こし完了。AIで分析中...`);
     await analyzeTranscript(combined);
   };
 
@@ -511,8 +548,8 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
       )}
 
       <div className={styles.hint}>
-        録音は5分ごとに自動分割されます。60分のセッションも問題ありません。
-        チャンクが失敗しても処理は続行されます。
+        録音は2分ごとにバックグラウンドで文字起こしされます。60分のセッションも問題ありません。
+        画面を閉じずに録音を続けてください。
       </div>
     </div>
   );
