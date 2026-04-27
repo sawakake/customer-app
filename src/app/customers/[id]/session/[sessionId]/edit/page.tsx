@@ -76,6 +76,7 @@ function EditSessionPageContent() {
     summary: "",
     motivation: "",
     advice: "",
+    postureAnalysis: "",
     freeNote: "",
   });
 
@@ -508,8 +509,7 @@ function EditSessionPageContent() {
                       <Sparkles size={16} /> 
                       {isAnalyzingPosture ? "画像AI解析中..." : "アップロードした写真で姿勢変化をAI分析する"}
                     </button>
-                  </div>
-                  </div>
+                    </div>
                   {sessionForm.postureAnalysis && (
                     <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#f0f9ff', borderRadius: '12px', border: '1px solid #bae6fd' }}>
                       <h4 style={{ fontSize: '0.9rem', color: '#0369a1', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>

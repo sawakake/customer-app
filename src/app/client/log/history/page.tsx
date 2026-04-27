@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Coffee, Dumbbell, BookOpen, Calendar, Filter, ChevronRight, TrendingUp } from "lucide-react";
+import { ArrowLeft, Coffee, Dumbbell, BookOpen, Calendar, Filter, ChevronRight, TrendingUp, Activity } from "lucide-react";
 import styles from "./page.module.css";
 
 export default function ClientLogHistoryPage() {
