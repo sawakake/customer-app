@@ -8,9 +8,7 @@ export async function DELETE(
   try {
     const { id } = await context.params;
     
-    // 関連データの削除（もしある場合）
-    await prisma.menuItem.deleteMany({ where: { sessionId: id } });
-    
+    // 関連データの削除（PrismaのonDelete: Cascadeにより、SessionMenuやSessionPhotoも自動削除されます）
     await prisma.session.delete({
       where: { id }
     });
