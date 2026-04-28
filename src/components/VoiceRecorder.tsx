@@ -79,6 +79,8 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
   const chunkCountRef = useRef(0); // 録音開始からのチャンク数
   const transcriptsMapRef = useRef<Map<number, string>>(new Map());
   const wakeLockRef = useRef<any>(null);
+  const requestDataIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const elapsedSecRef = useRef(0);
 
   // =============================================
   // localStorage 復元チェック（マウント時）
@@ -147,7 +149,9 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
   const startTimer = () => {
     startTimeRef.current = Date.now();
     timerRef.current = setInterval(() => {
-      setElapsedSec(Math.floor((Date.now() - startTimeRef.current) / 1000));
+      const sec = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      setElapsedSec(sec);
+      elapsedSecRef.current = sec;
     }, 1000);
   };
 
@@ -195,26 +199,31 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
         }
       }
 
-      // timeslice により定期的に ondataavailable が発火
+      // timeslice ではなく setInterval で手動で requestData を呼ぶことで確実にチャンクを生成する
       mediaRecorder.ondataavailable = async (event) => {
         if (!event.data || event.data.size === 0) return;
 
         const currentIndex = chunkIndexRef.current;
-        const startMin = (elapsedSec / 60); // おおよその開始分
-        const endMin = startMin + (CHUNK_INTERVAL_MS / 60000);
+        const currentTotalSec = elapsedSecRef.current;
+        const startMin = Math.floor(currentTotalSec / 60);
+        const endMin = startMin + Math.floor(CHUNK_INTERVAL_MS / 60000);
         chunkIndexRef.current += 1;
 
         setChunkStatuses(prev => [
           ...prev,
-          { index: currentIndex, status: "pending", durationStart: Math.floor(startMin), durationEnd: Math.ceil(endMin) }
+          { index: currentIndex, status: "pending", durationStart: startMin, durationEnd: endMin }
         ]);
 
         // 録音中からバックグラウンドで文字起こし開始
-        transcribeChunk(event.data, currentIndex, Math.floor(startMin), mimeType || "audio/webm");
+        transcribeChunk(event.data, currentIndex, startMin, mimeType || "audio/webm");
       };
 
       mediaRecorder.onstop = async () => {
         stopTimer();
+        if (requestDataIntervalRef.current) {
+          clearInterval(requestDataIntervalRef.current);
+          requestDataIntervalRef.current = null;
+        }
         setIsRecording(false);
         
         // Wake Lock 解除
@@ -223,7 +232,7 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
           wakeLockRef.current = null;
         }
 
-        setStatus("残りのチャンクを処理しています...");
+        setStatus("最後のチャンクを処理中...");
         setIsProcessing(true);
         
         // 全てのチャンクが完了するのを待機
@@ -231,10 +240,18 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
         await finalizeTranscription();
       };
 
-      mediaRecorder.start(CHUNK_INTERVAL_MS);
+      // 録音開始 (timesliceなし)
+      mediaRecorder.start();
       setIsRecording(true);
       setStatus("録音中");
       startTimer();
+
+      // 手動チャンクタイマー
+      requestDataIntervalRef.current = setInterval(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+          mediaRecorderRef.current.requestData();
+        }
+      }, CHUNK_INTERVAL_MS);
     } catch (err: any) {
       setStatus(`録音を開始できませんでした: ${err.message}`);
     }
@@ -245,6 +262,10 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
   // =============================================
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
+      if (requestDataIntervalRef.current) {
+        clearInterval(requestDataIntervalRef.current);
+        requestDataIntervalRef.current = null;
+      }
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
       setStatus("停止しています...");
