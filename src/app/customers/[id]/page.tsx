@@ -13,17 +13,35 @@ export const dynamic = 'force-dynamic';
 export default async function CustomerDetailPage({ params }: { params: any }) {
   const { id } = await params;
   
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
   // 画面遷移を「スッと」させるため、ここでは基本情報のみ取得（リレーションは最小限）
   const customer = await prisma.customer.findUnique({
     where: { id },
     include: {
       goals: { orderBy: { createdAt: "desc" }, take: 1 },
       reports: { orderBy: { createdAt: "desc" }, take: 3 },
-      _count: { select: { sessions: true } }
+      _count: {
+        select: {
+          sessions: {
+            where: {
+              date: { gte: startOfMonth },
+              type: { not: "計測のみ" }
+            }
+          }
+        }
+      }
     }
   });
 
   if (!customer) notFound();
+
+  // 定額・月額プランの場合は今月の消化数、それ以外（体験など）は全期間
+  const isMonthly = customer.plan?.includes("月") || customer.plan?.includes("定額");
+  const dbCount = isMonthly 
+    ? customer._count.sessions 
+    : await prisma.session.count({ where: { customerId: id, type: { not: "計測のみ" } } });
 
   const dob = new Date(customer.dob);
   const age = new Date().getFullYear() - dob.getFullYear();
@@ -46,7 +64,9 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
           </h1>
           <div className={styles.planStatus}>
             <span className={styles.planName}>{customer.plan || 'プラン未設定'}</span>
-            <span className={styles.sessionCount}>全 {customer._count.sessions} セッション</span>
+            <span className={styles.sessionCount}>
+              {isMonthly ? "今月の消化数" : "通算消化数"}: {dbCount + (customer.usedSessionsAdjustment || 0)} 回
+            </span>
           </div>
         </div>
         <div className={styles.actionGroup}>
@@ -61,9 +81,11 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
       <div style={{ marginBottom: '2rem' }}>
         <SessionCountManager 
           customerId={id}
-          initialTotal={customer.manualTotalSessions as number | null}
+          planName={customer.plan || ""}
+          initialTotal={customer.manualTotalSessions}
           initialAdjustment={customer.usedSessionsAdjustment || 0}
-          dbSessionCount={customer._count.sessions}
+          dbSessionCount={dbCount}
+          isMonthly={isMonthly}
         />
       </div>
 

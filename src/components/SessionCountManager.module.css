@@ -211,3 +211,25 @@
   color: var(--secondary-foreground);
   margin-top: 0.25rem;
 }
+
+.unit {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--secondary-foreground);
+  margin-left: 0.1rem;
+}
+
+.leftBadge {
+  margin-left: auto;
+  background: var(--primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.leftValue {
+  font-size: 1.4rem;
+}
