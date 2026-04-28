@@ -72,15 +72,15 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
   const [showRestore, setShowRestore] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunkQueueRef = useRef<{ blob: Blob; index: number; startMin: number }[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
   const chunkIndexRef = useRef(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const chunkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
-  const chunkCountRef = useRef(0); // 録音開始からのチャンク数
   const transcriptsMapRef = useRef<Map<number, string>>(new Map());
   const wakeLockRef = useRef<any>(null);
-  const requestDataIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const elapsedSecRef = useRef(0);
+  const isRecordingRef = useRef(false);
 
   // =============================================
   // localStorage 復元チェック（マウント時）
@@ -170,11 +170,12 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
       setFullTranscript("");
       setStatus("");
       chunkIndexRef.current = 0;
-      chunkCountRef.current = 0;
-      chunkQueueRef.current = [];
+      transcriptsMapRef.current.clear();
+      isRecordingRef.current = true;
       clearDraft();
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
 
       const mimeType = [
         "audio/webm;codecs=opus",
@@ -183,93 +184,98 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
         "audio/ogg;codecs=opus",
       ].find(t => MediaRecorder.isTypeSupported(t)) ?? "";
 
-      const mediaRecorder = new MediaRecorder(stream, {
-        ...(mimeType ? { mimeType } : {}),
-        audioBitsPerSecond: 64000,
-      });
-
-      mediaRecorderRef.current = mediaRecorder;
-
-      // Wake Lock リクエスト（サポートされている場合）
+      // Wake Lock リクエスト
       if ('wakeLock' in navigator) {
-        try {
-          wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
-        } catch (err) {
-          console.warn("Wake Lock request failed:", err);
-        }
+        try { wakeLockRef.current = await (navigator as any).wakeLock.request('screen'); } catch {}
       }
 
-      // timeslice ではなく setInterval で手動で requestData を呼ぶことで確実にチャンクを生成する
-      mediaRecorder.ondataavailable = async (event) => {
-        if (!event.data || event.data.size === 0) return;
-
-        const currentIndex = chunkIndexRef.current;
-        const currentTotalSec = elapsedSecRef.current;
-        const startMin = Math.floor(currentTotalSec / 60);
-        const endMin = startMin + Math.floor(CHUNK_INTERVAL_MS / 60000);
-        chunkIndexRef.current += 1;
-
-        setChunkStatuses(prev => [
-          ...prev,
-          { index: currentIndex, status: "pending", durationStart: startMin, durationEnd: endMin }
-        ]);
-
-        // 録音中からバックグラウンドで文字起こし開始
-        transcribeChunk(event.data, currentIndex, startMin, mimeType || "audio/webm");
-      };
-
-      mediaRecorder.onstop = async () => {
-        stopTimer();
-        if (requestDataIntervalRef.current) {
-          clearInterval(requestDataIntervalRef.current);
-          requestDataIntervalRef.current = null;
-        }
-        setIsRecording(false);
-        
-        // Wake Lock 解除
-        if (wakeLockRef.current) {
-          await wakeLockRef.current.release();
-          wakeLockRef.current = null;
-        }
-
-        setStatus("最後のチャンクを処理中...");
-        setIsProcessing(true);
-        
-        // 全てのチャンクが完了するのを待機
-        await waitForAllChunks();
-        await finalizeTranscription();
-      };
-
-      // 録音開始 (timesliceなし)
-      mediaRecorder.start();
+      startTimer();
       setIsRecording(true);
       setStatus("録音中");
-      startTimer();
+      
+      // 最初のチャンク開始
+      createAndStartRecorder(mimeType);
 
-      // 手動チャンクタイマー
-      requestDataIntervalRef.current = setInterval(() => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-          mediaRecorderRef.current.requestData();
-        }
-      }, CHUNK_INTERVAL_MS);
     } catch (err: any) {
       setStatus(`録音を開始できませんでした: ${err.message}`);
     }
   };
 
+  // レコーダーの作成と開始（再帰的に呼び出される）
+  const createAndStartRecorder = (mimeType: string) => {
+    if (!isRecordingRef.current || !streamRef.current) return;
+
+    const currentIndex = chunkIndexRef.current;
+    const startMin = Math.floor(elapsedSecRef.current / 60);
+    const endMin = startMin + Math.floor(CHUNK_INTERVAL_MS / 60000);
+    chunkIndexRef.current += 1;
+
+    const recorder = new MediaRecorder(streamRef.current, {
+      ...(mimeType ? { mimeType } : {}),
+      audioBitsPerSecond: 64000,
+    });
+
+    recorder.ondataavailable = (event) => {
+      if (!event.data || event.data.size === 0) return;
+      
+      // ステータス表示用に追加
+      setChunkStatuses(prev => [
+        ...prev,
+        { index: currentIndex, status: "pending", durationStart: startMin, durationEnd: endMin }
+      ]);
+
+      // 文字起こし開始
+      transcribeChunk(event.data, currentIndex, startMin, mimeType || "audio/webm");
+    };
+
+    recorder.onstop = () => {
+      // 録音継続中なら次のレコーダーを開始
+      if (isRecordingRef.current) {
+        createAndStartRecorder(mimeType);
+      }
+    };
+
+    mediaRecorderRef.current = recorder;
+    recorder.start();
+
+    // 2分後に停止して次のチャンクへ
+    chunkTimeoutRef.current = setTimeout(() => {
+      if (recorder.state === "recording") {
+        recorder.stop();
+      }
+    }, CHUNK_INTERVAL_MS);
+  };
+
   // =============================================
   // 録音停止
   // =============================================
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      if (requestDataIntervalRef.current) {
-        clearInterval(requestDataIntervalRef.current);
-        requestDataIntervalRef.current = null;
-      }
+  const stopRecording = async () => {
+    isRecordingRef.current = false;
+    setIsRecording(false);
+    stopTimer();
+
+    if (chunkTimeoutRef.current) clearTimeout(chunkTimeoutRef.current);
+    
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
       mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
-      setStatus("停止しています...");
     }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+
+    // Wake Lock 解除
+    if (wakeLockRef.current) {
+      try { await wakeLockRef.current.release(); } catch {}
+      wakeLockRef.current = null;
+    }
+
+    setStatus("最後のチャンクを処理中...");
+    setIsProcessing(true);
+    
+    await waitForAllChunks();
+    await finalizeTranscription();
   };
 
   // =============================================
@@ -281,7 +287,7 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
     startMin: number,
     ext: string
   ): Promise<string | null> => {
-    const labelRange = `${startMin}〜${startMin + 5}分`;
+    const labelRange = `${startMin}〜${startMin + 2}分`;
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       if (attempt > 1) {
