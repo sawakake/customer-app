@@ -216,16 +216,25 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
     });
 
     recorder.ondataavailable = (event) => {
-      if (!event.data || event.data.size === 0) return;
+      if (!event.data || event.data.size < 1000) return; // 1KB未満の極小データは無視
       
+      const chunkBlob = event.data;
+      const fileSize = (chunkBlob.size / 1024 / 1024).toFixed(2);
+
       // ステータス表示用に追加
       setChunkStatuses(prev => [
         ...prev,
-        { index: currentIndex, status: "pending", durationStart: startMin, durationEnd: endMin }
+        { 
+          index: currentIndex, 
+          status: "pending", 
+          durationStart: startMin, 
+          durationEnd: endMin,
+          fileSizeMB: fileSize
+        }
       ]);
 
       // 文字起こし開始
-      transcribeChunk(event.data, currentIndex, startMin, mimeType || "audio/webm");
+      transcribeChunk(chunkBlob, currentIndex, startMin, mimeType || "audio/webm");
     };
 
     recorder.onstop = () => {
@@ -575,7 +584,8 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
       )}
 
       <div className={styles.hint}>
-        録音は2分ごとにバックグラウンドで文字起こしされます。60分のセッションも問題ありません。
+        Ver 2.0 (独立チャンク録音方式) - 
+        録音は2分ごとにバックグラウンドで独立して文字起こしされます。
         画面を閉じずに録音を続けてください。
       </div>
     </div>
