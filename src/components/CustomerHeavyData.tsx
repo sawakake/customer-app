@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import MetricsChart from "@/components/charts/MetricsChart";
 import Link from "next/link";
 import { FileText, Activity, Ruler, Loader2 } from "lucide-react";
-import styles from "./page.module.css";
+import styles from "./CustomerHeavyData.module.css";
 
 interface Props {
   customerId: string;
