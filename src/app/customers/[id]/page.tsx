@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import GenerateReportButton from "@/components/GenerateReportButton";
 import DeleteCustomerButton from "@/components/DeleteCustomerButton";
 import CustomerHeavyData from "@/components/CustomerHeavyData";
+import SessionCountManager from "@/components/SessionCountManager";
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +55,16 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
           <Link href={`/customers/${id}/session/new`} className={`btn btn-primary ${styles.actionBtn}`}><Mic size={18} /> セッション記録</Link>
           <Link href={`/customers/${id}/session/new?type=monthly`} className={`btn btn-secondary ${styles.actionBtn}`}><Ruler size={18} /> 身体データ計測</Link>
         </div>
+      </div>
+
+      {/* 回数管理セクション */}
+      <div style={{ marginBottom: '2rem' }}>
+        <SessionCountManager 
+          customerId={id}
+          initialTotal={customer.manualTotalSessions as number | null}
+          initialUsed={customer.manualUsedSessions as number | null}
+          dbSessionCount={customer._count.sessions}
+        />
       </div>
 
       <div className={styles.topDashboard}>

@@ -1,0 +1,192 @@
+.managerCard {
+  padding: 1.5rem;
+  background: white;
+  border-left: 4px solid var(--primary);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.titleInfo h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+  color: var(--foreground);
+}
+
+.titleInfo p {
+  font-size: 0.8rem;
+  color: var(--secondary-foreground);
+}
+
+.editBtn {
+  background: none;
+  border: none;
+  color: var(--secondary-foreground);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.editBtn:hover {
+  background: var(--secondary);
+  color: var(--primary);
+}
+
+.displayArea {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: var(--secondary-foreground);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.separator {
+  font-size: 1.5rem;
+  color: var(--border);
+  font-weight: 300;
+  margin-top: 1rem;
+}
+
+.progressSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progressBar {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 0.5s ease-out;
+}
+
+.progressText {
+  font-size: 0.8rem;
+  color: var(--secondary-foreground);
+  font-weight: 600;
+  text-align: right;
+}
+
+.editArea {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inputGroup label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.numberInput {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.numberInput input {
+  width: 80px;
+  text-align: center;
+  padding: 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.numberInput button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.numberInput button:hover {
+  background: var(--secondary);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.saveBtn {
+  margin-top: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.saveBtn:hover {
+  background: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.saveBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

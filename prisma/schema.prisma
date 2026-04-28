@@ -41,6 +41,10 @@ model Customer {
   plan              String?   @default("未設定")
   status            String    @default("入会済み")
 
+  // 手動回数管理用
+  manualTotalSessions Int?
+  manualUsedSessions  Int?
+
   complaint         String?
   idealState        String?
   desiredServices   String?
