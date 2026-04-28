@@ -310,3 +310,29 @@
     flex-direction: column;
   }
 }
+.calculateBtn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+}
+
+.calculateBtn:hover {
+  background: var(--accent);
+  transform: scale(1.05);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: var(--secondary-foreground);
+  font-size: 0.9rem;
+}

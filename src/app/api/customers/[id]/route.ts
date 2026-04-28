@@ -44,12 +44,17 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
+    // 画面遷移を「スッと」させるため、ここでは基本情報のみ取得
     const customer = await prisma.customer.findUnique({
       where: { id },
       include: {
-        metrics: true,
-        sessions: true,
-        goals: true
+        _count: {
+          select: { 
+            sessions: true,
+            metrics: true,
+            goals: true
+          }
+        }
       }
     });
 
@@ -60,6 +65,27 @@ export async function GET(
     return NextResponse.json(customer);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch customer' }, { status: 500 });
+  }
+}
+
+// 部分更新（プラン変更など）に対応したPATCHを追加
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<any> }
+) {
+  try {
+    const { id } = await context.params;
+    const data = await request.json();
+
+    const updatedCustomer = await prisma.customer.update({
+      where: { id },
+      data: data, // 受け取ったデータのみ更新
+    });
+
+    return NextResponse.json(updatedCustomer);
+  } catch (error) {
+    console.error('Failed to patch customer:', error);
+    return NextResponse.json({ error: 'Failed to update customer' }, { status: 500 });
   }
 }
 export async function DELETE(

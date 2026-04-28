@@ -57,8 +57,27 @@ export default function Dashboard() {
                 <TrendingUp size={14} /> 概算発生額 (今月 / 先月)
               </div>
               <div className={styles.kpiValue}>
-                ¥{stats.summary.thisMonthRevenue.toLocaleString()} 
-                <span className={styles.subText}>/ ¥{stats.summary.lastMonthRevenue.toLocaleString()}</span>
+                {stats.summary.thisMonthRevenue > 0 ? (
+                  <>
+                    ¥{stats.summary.thisMonthRevenue.toLocaleString()} 
+                    <span className={styles.subText}>/ ¥{stats.summary.lastMonthRevenue.toLocaleString()}</span>
+                  </>
+                ) : (
+                  <button 
+                    className={styles.calculateBtn}
+                    onClick={() => {
+                      setIsLoading(true);
+                      fetch('/api/dashboard-stats?calculateRevenue=true')
+                        .then(res => res.json())
+                        .then(data => {
+                          setStats(data);
+                          setIsLoading(false);
+                        });
+                    }}
+                  >
+                    数値を算出する
+                  </button>
+                )}
               </div>
               <div className={styles.kpiDetail}>
                 単価設定: 8,500円 / 60分
