@@ -77,46 +77,22 @@ export default function CustomersManagementPage() {
             {filteredCustomers.map(customer => {
               const status = getStatusBadge(customer);
               return (
-                <div key={customer.id} className={styles.customerCardWrapper}>
-                  <Link href={`/customers/${customer.id}`} className={styles.customerCard}>
-                    <div className={styles.customerInfo}>
-                      <div className={styles.avatarMini}>{customer.name[0]}</div>
-                      <div>
-                        <h3>{customer.name}</h3>
-                        <div className={styles.status}>
-                          <span className={styles.dot} style={{ backgroundColor: status.color }} />
-                          {status.label}
-                        </div>
-                      </div>
+                <Link key={customer.id} href={`/customers/${customer.id}`} className={styles.customerCard}>
+                  <div className={styles.customerInfo}>
+                    <div className={styles.avatarMini}>{customer.name[0]}</div>
+                    <div>
+                      <h3>{customer.name}</h3>
+                      <span className={styles.planLabel}>{customer.plan || "未設定"}</span>
                     </div>
-                  </Link>
-                  <div className={styles.quickActions}>
-                    <select 
-                      className={styles.quickPlanSelect}
-                      value={customer.plan || "未設定"} 
-                      onChange={async (e) => {
-                        const newPlan = e.target.value;
-                        // 楽観的更新
-                        setCustomers(prev => prev.map(c => c.id === customer.id ? { ...c, plan: newPlan } : c));
-                        try {
-                          await fetch(`/api/customers/${customer.id}`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ plan: newPlan })
-                          });
-                        } catch (err) {
-                          console.error("Failed to update plan");
-                        }
-                      }}
-                    >
-                      <option value="未設定">未設定</option>
-                      <option value="月4回コース">月4回コース</option>
-                      <option value="月8回コース">月8回コース</option>
-                      <option value="定額通い放題">定額通い放題</option>
-                      <option value="体験">体験</option>
-                    </select>
                   </div>
-                </div>
+                  <div className={styles.customerMeta}>
+                    <div className={styles.status}>
+                      <span className={styles.dot} style={{ backgroundColor: status.color }} />
+                      {status.label}
+                    </div>
+                    <ArrowRight size={18} className={styles.arrow} />
+                  </div>
+                </Link>
               );
             })}
           </div>

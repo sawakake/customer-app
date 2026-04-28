@@ -62,7 +62,7 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
         <SessionCountManager 
           customerId={id}
           initialTotal={customer.manualTotalSessions as number | null}
-          initialUsed={customer.manualUsedSessions as number | null}
+          initialAdjustment={customer.usedSessionsAdjustment || 0}
           dbSessionCount={customer._count.sessions}
         />
       </div>

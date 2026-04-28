@@ -43,7 +43,7 @@ model Customer {
 
   // 手動回数管理用
   manualTotalSessions Int?
-  manualUsedSessions  Int?
+  usedSessionsAdjustment Int? @default(0)
 
   complaint         String?
   idealState        String?

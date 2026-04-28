@@ -120,3 +120,9 @@
   color: var(--secondary-foreground);
   margin-bottom: 0.5rem;
 }
+
+.historyActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

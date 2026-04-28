@@ -78,50 +78,24 @@
   gap: 1rem;
 }
 
-.customerCardWrapper {
+.customerCard {
   background: #f8fafc;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  display: flex;
-  flex-direction: column;
-  transition: all 0.2s;
-  overflow: hidden;
-}
-
-.customerCardWrapper:hover {
-  background: white;
-  border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
-  transform: translateY(-2px);
-}
-
-.customerCard {
   padding: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   text-decoration: none;
   color: inherit;
-  border-bottom: 1px dashed var(--border);
+  transition: all 0.2s;
 }
 
-.quickActions {
-  padding: 0.5rem 1rem;
-  background: rgba(59, 130, 246, 0.05);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.quickPlanSelect {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 0.2rem;
-  font-size: 0.8rem;
-  color: var(--primary);
-  font-weight: 600;
-  outline: none;
+.customerCard:hover {
+  background: white;
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
 }
 
 .customerInfo {

@@ -190,3 +190,24 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+.adjustmentBadge {
+  font-size: 0.75rem;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.activeAdjustment {
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.hint {
+  font-size: 0.7rem;
+  color: var(--secondary-foreground);
+  margin-top: 0.25rem;
+}

@@ -5,6 +5,7 @@ import MetricsChart from "@/components/charts/MetricsChart";
 import Link from "next/link";
 import { FileText, Activity, Ruler, Loader2 } from "lucide-react";
 import styles from "./CustomerHeavyData.module.css";
+import DeleteSessionButton from "@/components/DeleteSessionButton";
 
 interface Props {
   customerId: string;
@@ -15,7 +16,7 @@ export default function CustomerHeavyData({ customerId }: Props) {
   const [metrics, setMetrics] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = () => {
     Promise.all([
       fetch(`/api/customers/${customerId}/sessions`).then(res => res.json()),
       fetch(`/api/customers/${customerId}/metrics`).then(res => res.json())
@@ -24,6 +25,10 @@ export default function CustomerHeavyData({ customerId }: Props) {
       setMetrics(Array.isArray(metricsData) ? metricsData : []);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, [customerId]);
 
   if (loading) {
@@ -96,7 +101,10 @@ export default function CustomerHeavyData({ customerId }: Props) {
                     </div>
                     {session.aiSummary && <p className={styles.historySummary}>{session.aiSummary}</p>}
                   </div>
-                  <Link href={`/customers/${customerId}/session/${session.id}`} className="btn btn-secondary">詳細</Link>
+                  <div className={styles.historyActions}>
+                    <Link href={`/customers/${customerId}/session/${session.id}`} className="btn btn-secondary">詳細</Link>
+                    <DeleteSessionButton sessionId={session.id} onDeleted={fetchData} />
+                  </div>
                 </li>
               ))}
             </ul>
@@ -116,7 +124,10 @@ export default function CustomerHeavyData({ customerId }: Props) {
                   <div className={styles.historyMain}>
                     <div className={styles.historyDate}>{new Date(session.date).toLocaleDateString('ja-JP')}</div>
                   </div>
-                  <Link href={`/customers/${customerId}/session/${session.id}`} className="btn btn-secondary">数値</Link>
+                  <div className={styles.historyActions}>
+                    <Link href={`/customers/${customerId}/session/${session.id}`} className="btn btn-secondary">数値</Link>
+                    <DeleteSessionButton sessionId={session.id} onDeleted={fetchData} />
+                  </div>
                 </li>
               ))}
             </ul>
