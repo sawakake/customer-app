@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Save, Loader2, Plus, Minus } from "lucide-react";
+import { Settings, Save, Loader2, Plus, Minus, Calendar } from "lucide-react";
 import styles from "./SessionCountManager.module.css";
 
 interface Props {
   customerId: string;
   planName: string;
+  planStartDate: Date | null;
   initialTotal: number | null;
   initialAdjustment: number;
   dbSessionCount: number;
@@ -16,16 +17,25 @@ interface Props {
 export default function SessionCountManager({ 
   customerId, 
   planName,
+  planStartDate,
   initialTotal, 
   initialAdjustment,
   dbSessionCount,
   isMonthly
 }: Props) {
   // プラン名から回数を推測
-  const inferredTotal = planName.includes("4回") ? 4 : planName.includes("8回") ? 8 : 0;
+  let inferredTotal = 0;
+  if (planName.includes("4回")) inferredTotal = 4;
+  else if (planName.includes("8回")) inferredTotal = 8;
+  else if (planName.includes("12回")) inferredTotal = 12;
+  else if (planName.includes("24回") || planName.includes("25回")) inferredTotal = 25;
+  else if (planName.includes("48回") || planName.includes("52回")) inferredTotal = 52;
   
   const [total, setTotal] = useState<number>(initialTotal || inferredTotal);
   const [adjustment, setAdjustment] = useState<number>(initialAdjustment);
+  const [startDate, setStartDate] = useState<string>(
+    planStartDate ? new Date(planStartDate).toISOString().split('T')[0] : ""
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -37,7 +47,8 @@ export default function SessionCountManager({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           manualTotalSessions: total,
-          usedSessionsAdjustment: adjustment
+          usedSessionsAdjustment: adjustment,
+          planStartDate: startDate ? new Date(startDate).toISOString() : null
         })
       });
       setIsEditing(false);
@@ -57,8 +68,13 @@ export default function SessionCountManager({
     <div className={`card ${styles.managerCard}`}>
       <div className={styles.header}>
         <div className={styles.titleInfo}>
-          <h3>ご利用状況（{isMonthly ? "今月分" : "通算"}）</h3>
-          <p>{planName} の進捗状況です</p>
+          <h3>ご利用状況（{isMonthly ? "今月分" : "プラン分"}）</h3>
+          <div className={styles.planBadge}>{planName || "プラン未設定"}</div>
+          {planStartDate && (
+            <p className={styles.startDateInfo}>
+              <Calendar size={12} /> 開始日: {new Date(planStartDate).toLocaleDateString('ja-JP')}
+            </p>
+          )}
         </div>
         <button onClick={() => setIsEditing(!isEditing)} className={styles.editBtn}>
           {isEditing ? "閉じる" : <Settings size={18} />}
@@ -69,7 +85,7 @@ export default function SessionCountManager({
         <div className={styles.displayArea}>
           <div className={styles.stats}>
             <div className={styles.statItem}>
-              <span className={styles.label}>{isMonthly ? "今月の消化" : "消化済み"}</span>
+              <span className={styles.label}>{isMonthly ? "今月の消化" : "プラン消化済み"}</span>
               <span className={styles.value}>{finalUsed} <span className={styles.unit}>回</span></span>
             </div>
             {total > 0 && (
@@ -96,28 +112,39 @@ export default function SessionCountManager({
         </div>
       ) : (
         <div className={styles.editArea}>
-          <div className={styles.inputGroup}>
-            <label>プランの合計回数（0で非表示）</label>
-            <div className={styles.numberInput}>
-              <button onClick={() => setTotal(Math.max(0, total - 1))}><Minus size={16}/></button>
-              <input type="number" value={total} onChange={(e) => setTotal(parseInt(e.target.value) || 0)} />
-              <button onClick={() => setTotal(total + 1)}><Plus size={16}/></button>
+          <div className={styles.editGrid}>
+            <div className={styles.inputGroup}>
+              <label>契約合計回数</label>
+              <div className={styles.numberInput}>
+                <button onClick={() => setTotal(Math.max(0, total - 1))}><Minus size={16}/></button>
+                <input type="number" value={total} onChange={(e) => setTotal(parseInt(e.target.value) || 0)} />
+                <button onClick={() => setTotal(total + 1)}><Plus size={16}/></button>
+              </div>
             </div>
-          </div>
 
-          <div className={styles.inputGroup}>
-            <label>手動調整（記録漏れなどの補正）</label>
-            <div className={styles.numberInput}>
-              <button onClick={() => setAdjustment(adjustment - 1)}><Minus size={16}/></button>
-              <input 
-                type="number" 
-                value={adjustment} 
-                onChange={(e) => setAdjustment(parseInt(e.target.value) || 0)} 
-                className={adjustment !== 0 ? styles.activeAdjustment : ""}
-              />
-              <button onClick={() => setAdjustment(adjustment + 1)}><Plus size={16}/></button>
+            <div className={styles.inputGroup}>
+              <label>手動調整（±）</label>
+              <div className={styles.numberInput}>
+                <button onClick={() => setAdjustment(adjustment - 1)}><Minus size={16}/></button>
+                <input 
+                  type="number" 
+                  value={adjustment} 
+                  onChange={(e) => setAdjustment(parseInt(e.target.value) || 0)} 
+                  className={adjustment !== 0 ? styles.activeAdjustment : ""}
+                />
+                <button onClick={() => setAdjustment(adjustment + 1)}><Plus size={16}/></button>
+              </div>
             </div>
-            <p className={styles.hint}>※自動カウント（{dbSessionCount}回）にこの数値を加算します</p>
+
+            <div className={styles.inputGroup} style={{ gridColumn: 'span 2' }}>
+              <label>プラン開始日（回数券などの起算日）</label>
+              <input 
+                type="date" 
+                value={startDate} 
+                onChange={(e) => setStartDate(e.target.value)} 
+                className={styles.dateInput}
+              />
+            </div>
           </div>
 
           <button className={styles.saveBtn} onClick={handleSave} disabled={isSaving}>

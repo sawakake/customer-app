@@ -44,6 +44,7 @@ model Customer {
   // 手動回数管理用
   manualTotalSessions Int?
   usedSessionsAdjustment Int? @default(0)
+  planStartDate     DateTime?
 
   complaint         String?
   idealState        String?

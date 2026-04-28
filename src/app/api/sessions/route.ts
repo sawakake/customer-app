@@ -58,6 +58,19 @@ export async function POST(request: Request) {
       });
     }
 
+    // 3. プラン開始日が未設定の場合、このセッション日を開始日として設定
+    const customer = await prisma.customer.findUnique({
+      where: { id: customerId },
+      select: { planStartDate: true }
+    });
+
+    if (customer && !customer.planStartDate) {
+      await prisma.customer.update({
+        where: { id: customerId },
+        data: { planStartDate: session.date || new Date() }
+      });
+    }
+
     return NextResponse.json({ success: true, sessionId: session.id });
   } catch (error) {
     console.error('Failed to save session:', error);

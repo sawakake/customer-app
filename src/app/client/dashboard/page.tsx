@@ -55,6 +55,39 @@ export default async function ClientDashboard() {
   const recommendedVideos = videos.sort(() => 0.5 - Math.random()).slice(0, 3);
   
   if (!customer) redirect("/client/login");
+  
+  // 回数管理の計算
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const isMonthlyPlan = customer.plan?.includes("月");
+  const isTicketPlan = customer.plan?.includes("回数券");
+  
+  let dbCount = 0;
+  if (isMonthlyPlan) {
+    dbCount = await prisma.session.count({
+      where: { customerId: userId, date: { gte: startOfMonth }, type: { not: "計測のみ" } }
+    });
+  } else if (isTicketPlan && customer.planStartDate) {
+    dbCount = await prisma.session.count({ 
+      where: { customerId: userId, date: { gte: customer.planStartDate }, type: { not: "計測のみ" } } 
+    });
+  } else {
+    dbCount = await prisma.session.count({ where: { customerId: userId, type: { not: "計測のみ" } } });
+  }
+
+  const finalUsed = dbCount + (customer.usedSessionsAdjustment || 0);
+  
+  // プラン上限の推測
+  let inferredTotal = 0;
+  const planName = customer.plan || "";
+  if (planName.includes("4回")) inferredTotal = 4;
+  else if (planName.includes("8回")) inferredTotal = 8;
+  else if (planName.includes("12回")) inferredTotal = 12;
+  else if (planName.includes("24回") || planName.includes("25回")) inferredTotal = 25;
+  else if (planName.includes("48回") || planName.includes("52回")) inferredTotal = 52;
+  
+  const total = customer.manualTotalSessions || inferredTotal;
+  const left = total > 0 ? total - finalUsed : null;
 
   // プロパティの互換性を保つために customer オブジェクトに結合するか、そのまま使用する
   const customerWithData = {
@@ -100,6 +133,47 @@ export default async function ClientDashboard() {
             </div>
           </div>
         )}
+
+        {/* ご利用状況（回数管理） */}
+        <div className={styles.usageCard}>
+          <div className={styles.usageHeader}>
+            <div className={styles.usageTitle}>
+              <Activity size={18} />
+              <span>ご利用状況（{isMonthlyPlan ? "今月分" : "プラン分"}）</span>
+            </div>
+            <div className={styles.planBadge}>{planName}</div>
+          </div>
+          
+          <div className={styles.usageStats}>
+            <div className={styles.usageMain}>
+              <span className={styles.usageValue}>{finalUsed}</span>
+              <span className={styles.usageSeparator}>/</span>
+              <span className={styles.usageTotal}>{total > 0 ? total : "--"}</span>
+              <span className={styles.usageUnit}>回</span>
+            </div>
+            {total > 0 && (
+              <div className={styles.remainingBadge}>
+                残り <span>{left}</span> 回
+              </div>
+            )}
+          </div>
+
+          {total > 0 && (
+            <div className={styles.usageProgress}>
+              <div 
+                className={styles.usageProgressFill} 
+                style={{ width: `${Math.min((finalUsed / total) * 100, 100)}%` }} 
+              />
+            </div>
+          )}
+
+          {customer.planStartDate && (
+            <div className={styles.planDates}>
+              <Calendar size={14} />
+              <span>開始日: {new Date(customer.planStartDate).toLocaleDateString('ja-JP')}</span>
+            </div>
+          )}
+        </div>
 
         {/* クイック記録ボタン */}
         <section className={styles.quickActions}>
