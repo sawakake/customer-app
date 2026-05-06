@@ -80,7 +80,6 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
   const chunkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const transcriptsMapRef = useRef<Map<number, string>>(new Map());
-  const wakeLockRef = useRef<any>(null);
   const elapsedSecRef = useRef(0);
   const isRecordingRef = useRef(false);
 
