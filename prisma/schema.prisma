@@ -139,6 +139,10 @@ model Session {
   aiAdvice           String?
   postureAnalysis    String?
   clientMotivation   String?
+
+  // スタッフ用非公開メモ
+  smallTalk         String?  // 日常生活・雑談など（お客様には非表示）
+  fullTranscript    String?  // 文字起こし全文
 }
 
 model SessionMenu {

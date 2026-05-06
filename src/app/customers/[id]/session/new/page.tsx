@@ -76,6 +76,8 @@ function NewSessionPageContent() {
     advice: "",
     postureAnalysis: "",
     freeNote: "",
+    smallTalk: "",
+    fullTranscript: "",
   });
 
   // ---------- メニュー項目（アコーディオン） ----------
@@ -106,6 +108,7 @@ function NewSessionPageContent() {
       motivation: aiData.motivation || prev.motivation,
       advice:     aiData.advice     || prev.advice,
       homework:   aiData.homework   || prev.homework,
+      fullTranscript: aiData.fullTranscript || prev.fullTranscript,
     }));
     if (aiData.menuItems?.length > 0) {
       setMenuItems(aiData.menuItems.map((m: any) => ({ ...m, isOpen: true })));
@@ -645,6 +648,12 @@ function NewSessionPageContent() {
 
                 {/* フリーメモ・AIサマリー・宿題 */}
                 <div className={styles.textareaGroup}>
+                  <div className="form-group">
+                    <label>日常生活・雑談（スタッフ用メモ：お客様には見えません）</label>
+                    <textarea name="smallTalk" className={`input ${styles.textareaSmall}`}
+                      value={sessionForm.smallTalk} onChange={handleChange}
+                      placeholder="最近の体調、仕事の状況、趣味の話題など" />
+                  </div>
                   <div className="form-group">
                     <label>フリー記入欄</label>
                     <textarea name="freeNote" className={`input ${styles.textareaSmall}`}

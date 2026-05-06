@@ -154,6 +154,20 @@ export default async function SessionDetailPage({
               <p>{session.clientMotivation || "分析データがありません"}</p>
             </div>
           </div>
+          
+          {/* 日常生活・雑談 (スタッフ限定) */}
+          <div className="card" style={{ marginTop: '1.5rem', background: '#f8fafc' }}>
+            <h3 className={styles.sectionTitle} style={{ borderBottomColor: '#cbd5e1' }}>日常生活・雑談 (スタッフ用メモ)</h3>
+            <p className={styles.text} style={{ color: '#475569' }}>{session.smallTalk || "記録なし"}</p>
+          </div>
+
+          {/* 文字起こし全文 (スタッフ限定) */}
+          <details className={styles.transcriptDetails} style={{ marginTop: '1.5rem' }}>
+            <summary className={styles.transcriptSummary}>文字起こし全文を表示</summary>
+            <div className={styles.transcriptContent}>
+              {session.fullTranscript || "文字起こしデータがありません"}
+            </div>
+          </details>
         </div>
       </div>
     </div>

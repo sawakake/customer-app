@@ -42,6 +42,7 @@ interface VoiceRecorderProps {
     homework: string;
     motivation: string;
     advice: string;
+    fullTranscript: string;
   }) => void;
 }
 
@@ -426,7 +427,10 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
       const data = await res.json();
       if (data.error) throw new Error(data.error);
 
-      onAnalysisComplete(data);
+      onAnalysisComplete({
+        ...data,
+        fullTranscript: text
+      });
       clearDraft(); // 分析成功したら下書き削除
       setStatus("✅ 分析完了！フォームに自動入力しました。");
     } catch (err: any) {

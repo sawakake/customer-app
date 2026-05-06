@@ -91,6 +91,17 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
         </div>
       </div>
 
+      {/* プラン更新アラート */}
+      {(isTicketPlan && customer.manualTotalSessions && (customer.manualTotalSessions - (dbCount + (customer.usedSessionsAdjustment || 0)) <= 0)) && (
+        <div className={styles.renewalAlert}>
+          <div className={styles.alertIcon}>⚠️</div>
+          <div className={styles.alertText}>
+            <strong>プラン更新のタイミングです</strong>
+            <p>回数券の全回数を消化しました。次回のプラン継続についてご案内をお願いします。</p>
+          </div>
+        </div>
+      )}
+
       {/* 回数管理セクション */}
       <div style={{ marginBottom: '2rem' }}>
         <SessionCountManager 

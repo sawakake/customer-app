@@ -25,6 +25,8 @@ export async function POST(request: Request) {
         aiAdvice: sessionData.advice,
         postureAnalysis: sessionData.postureAnalysis,
         clientMotivation: sessionData.motivation,
+        smallTalk: sessionData.smallTalk,
+        fullTranscript: sessionData.fullTranscript,
         menuItems: {
           create: menuItems?.map((item: any) => ({
             name: item.name,
