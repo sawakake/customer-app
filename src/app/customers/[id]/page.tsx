@@ -42,8 +42,12 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
   const isTicketPlan = customer.plan?.includes("回数券");
   
   let dbCount = 0;
+  let displayCount = 0;
+
   if (isMonthlyPlan) {
-    dbCount = customer._count.sessions; // Prisma includeで今月分を取得済み
+    dbCount = customer._count.sessions; 
+    // 月額プランは「今月のセッション数」のみを表示し、古い調整値は無視する
+    displayCount = dbCount; 
   } else if (isTicketPlan && customer.planStartDate) {
     dbCount = await prisma.session.count({ 
       where: { 
@@ -52,9 +56,11 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
         type: { not: "計測のみ" }
       } 
     });
+    displayCount = dbCount + (customer.usedSessionsAdjustment || 0);
   } else {
     // それ以外（体験など）は全期間
     dbCount = await prisma.session.count({ where: { customerId: id, type: { not: "計測のみ" } } });
+    displayCount = dbCount;
   }
 
   const dob = new Date(customer.dob);
@@ -79,7 +85,7 @@ export default async function CustomerDetailPage({ params }: { params: any }) {
           <div className={styles.planStatus}>
             <span className={styles.planName}>{customer.plan || 'プラン未設定'}</span>
             <span className={styles.sessionCount}>
-              {isMonthlyPlan ? "今月の消化数" : "プラン消化数"}: {dbCount + (customer.usedSessionsAdjustment || 0)} 回
+              {isMonthlyPlan ? "今月の消化数" : "プラン消化数"}: {displayCount} 回
             </span>
           </div>
         </div>
