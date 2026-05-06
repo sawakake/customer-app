@@ -69,6 +69,7 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
   const [fullTranscript, setFullTranscript] = useState("");
   const [showDebug, setShowDebug] = useState(false);
   const [elapsedSec, setElapsedSec] = useState(0);
+  const wakeLockRef = useRef<any>(null); // 画面消灯防止用
   const [draftData, setDraftData] = useState<DraftData | null>(null);
   const [showRestore, setShowRestore] = useState(false);
 
@@ -175,8 +176,23 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
       isRecordingRef.current = true;
       clearDraft();
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        } 
+      });
       streamRef.current = stream;
+
+      // iPadのロック画面・バックグラウンド対策
+      if ('mediaSession' in navigator) {
+        (navigator as any).mediaSession.metadata = new (window as any).MediaMetadata({
+          title: 'セッション記録中...',
+          artist: 'ジム管理アプリ',
+          album: '録音を継続しています'
+        });
+      }
 
       const mimeType = [
         "audio/webm;codecs=opus",
@@ -185,7 +201,7 @@ export default function VoiceRecorder({ onAnalysisComplete }: VoiceRecorderProps
         "audio/ogg;codecs=opus",
       ].find(t => MediaRecorder.isTypeSupported(t)) ?? "";
 
-      // Wake Lock リクエスト
+      // Wake Lock リクエスト（画面消灯防止）
       if ('wakeLock' in navigator) {
         try { wakeLockRef.current = await (navigator as any).wakeLock.request('screen'); } catch {}
       }
