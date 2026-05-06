@@ -105,6 +105,7 @@ function NewSessionPageContent() {
     setSessionForm(prev => ({
       ...prev,
       summary:    aiData.summary    || prev.summary,
+      smallTalk:  aiData.smallTalk  || prev.smallTalk,
       motivation: aiData.motivation || prev.motivation,
       advice:     aiData.advice     || prev.advice,
       homework:   aiData.homework   || prev.homework,
