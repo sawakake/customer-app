@@ -4,11 +4,7 @@ import { syncBirthdayToCalendar } from '@/lib/googleCalendar';
 
 export async function POST() {
   try {
-    const customers = await prisma.customer.findMany({
-      where: {
-        dob: { not: null }
-      }
-    });
+    const customers = await prisma.customer.findMany();
 
     console.log(`Starting bulk sync for ${customers.length} customers...`);
 
