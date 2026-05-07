@@ -3,13 +3,15 @@
 import { useState, useEffect } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
-import { Search, ArrowRight, UserPlus, Filter } from "lucide-react";
+import { Search, ArrowRight, UserPlus, Filter, Calendar, RefreshCw, CheckCircle2 } from "lucide-react";
 
 export default function CustomersManagementPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [activePlan, setActivePlan] = useState("すべて");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
 
   useEffect(() => {
     fetch('/api/customers')
@@ -29,6 +31,25 @@ export default function CustomersManagementPage() {
     return matchesPlan && matchesSearch;
   });
 
+  const handleSync = async () => {
+    setIsSyncing(true);
+    setSyncMessage("");
+    try {
+      const res = await fetch('/api/customers/sync-birthdays', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        setSyncMessage("同期が完了しました！");
+        setTimeout(() => setSyncMessage(""), 3000);
+      } else {
+        alert("同期エラー: " + (data.error || "不明なエラー"));
+      }
+    } catch (err) {
+      alert("通信エラーが発生しました");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const getStatusBadge = (customer: any) => {
     const sessionCount = customer._count?.sessions || 0;
     if (sessionCount === 0) return { label: '未開始', color: '#94a3b8' };
@@ -41,6 +62,21 @@ export default function CustomersManagementPage() {
         <div className={styles.titleInfo}>
           <h1>顧客一覧・管理</h1>
           <p>会員情報の検索と詳細の確認ができます</p>
+        </div>
+        <div className={styles.headerActions}>
+          {syncMessage && (
+            <div className={styles.syncToast}>
+              <CheckCircle2 size={16} /> {syncMessage}
+            </div>
+          )}
+          <button 
+            className={`btn btn-secondary ${styles.syncBtn}`} 
+            onClick={handleSync}
+            disabled={isSyncing}
+          >
+            {isSyncing ? <RefreshCw size={18} className="spin" /> : <Calendar size={18} />}
+            {isSyncing ? "同期中..." : "カレンダー一括同期"}
+          </button>
         </div>
       </div>
 
