@@ -1,0 +1,77 @@
+import { google } from 'googleapis';
+
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI || 'https://developers.google.com/oauthplayground'
+);
+
+// 認証情報をセット
+oauth2Client.setCredentials({
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+});
+
+const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+/**
+ * 顧客の誕生日をカレンダーに登録/更新する
+ */
+export async function syncBirthdayToCalendar(customerName: string, birthday: Date) {
+  if (!process.env.GOOGLE_REFRESH_TOKEN) {
+    console.log('Google Calendar sync skipped: No refresh token.');
+    return;
+  }
+
+  try {
+    const summary = `${customerName}さん誕生日`;
+    
+    // すでに登録されているか検索（二重登録防止）
+    const now = new Date();
+    const list = await calendar.events.list({
+      calendarId: 'primary',
+      q: summary,
+      timeMin: new Date(now.getFullYear(), 0, 1).toISOString(),
+    });
+
+    const dateStr = birthday.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    const eventData = {
+      summary: summary,
+      description: '顧客管理アプリからの自動同期',
+      start: {
+        date: dateStr,
+      },
+      end: {
+        date: dateStr,
+      },
+      recurrence: ['RRULE:FREQ=YEARLY'], // 毎年繰り返す
+      reminders: {
+        useDefault: false,
+        overrides: [
+          { method: 'popup', minutes: 24 * 60 }, // 1日前
+          { method: 'popup', minutes: 9 * 60 },  // 当日の朝9時（24時間-9時間=15時間前的な意味ではなく、当日の朝）
+        ],
+      },
+    };
+
+    if (list.data.items && list.data.items.length > 0) {
+      // 更新
+      const eventId = list.data.items[0].id!;
+      await calendar.events.update({
+        calendarId: 'primary',
+        eventId: eventId,
+        requestBody: eventData,
+      });
+      console.log(`Updated birthday for ${customerName}`);
+    } else {
+      // 新規作成
+      await calendar.events.insert({
+        calendarId: 'primary',
+        requestBody: eventData,
+      });
+      console.log(`Created birthday for ${customerName}`);
+    }
+  } catch (error) {
+    console.error('Error syncing to Google Calendar:', error);
+  }
+}

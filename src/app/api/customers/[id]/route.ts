@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { syncBirthdayToCalendar } from '@/lib/googleCalendar';
 
 export async function PUT(
   request: Request,
@@ -30,6 +31,11 @@ export async function PUT(
         status: data.status,
       },
     });
+
+    // Googleカレンダーへ誕生日を同期
+    if (updatedCustomer.dob) {
+      await syncBirthdayToCalendar(updatedCustomer.name, new Date(updatedCustomer.dob));
+    }
 
     return NextResponse.json(updatedCustomer);
   } catch (error) {
