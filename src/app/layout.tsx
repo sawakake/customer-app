@@ -8,8 +8,17 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Premium BodyCareGymCONNECT",
+  title: "BCG CONNECT",
   description: "Next-generation personal trainer CRM system",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "BCG Connect",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 import { Providers } from "@/components/Providers";
