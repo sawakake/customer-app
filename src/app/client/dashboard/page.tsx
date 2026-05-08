@@ -5,6 +5,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import { Activity, Calendar, Ruler, FileText, Plus, Sparkles, ChevronRight, Dumbbell, Coffee, BookOpen, Video, TrendingUp } from "lucide-react";
 import MetricsChart from "@/components/charts/MetricsChart";
+import PWAPrompt from "@/components/PWAPrompt";
 
 export const dynamic = "force-dynamic";
 
@@ -337,6 +338,7 @@ export default async function ClientDashboard() {
           </section>
         )}
       </main>
+      <PWAPrompt />
     </div>
   );
 }
