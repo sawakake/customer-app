@@ -17,8 +17,8 @@ export default function PWAPrompt() {
     const ios = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
     setIsIOS(ios);
 
-    // 一度閉じたらそのセッション中は表示しない
-    const dismissed = sessionStorage.getItem("pwa-prompt-dismissed");
+    // 永久非表示が設定されている場合は表示しない
+    const dismissed = localStorage.getItem("pwa-prompt-dismissed-permanent");
     if (!dismissed) {
       setShowPrompt(true);
     }
@@ -26,7 +26,11 @@ export default function PWAPrompt() {
 
   const handleClose = () => {
     setShowPrompt(false);
-    sessionStorage.setItem("pwa-prompt-dismissed", "true");
+  };
+
+  const handlePermanentClose = () => {
+    setShowPrompt(false);
+    localStorage.setItem("pwa-prompt-dismissed-permanent", "true");
   };
 
   if (!showPrompt) return null;
@@ -84,6 +88,22 @@ export default function PWAPrompt() {
             <span>を押して、**「アプリをインストール」** または **「ホーム画面に追加」** を選択してください。</span>
           </>
         )}
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button 
+          onClick={handlePermanentClose} 
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            color: '#94a3b8', 
+            fontSize: '0.75rem', 
+            cursor: 'pointer',
+            textDecoration: 'underline'
+          }}
+        >
+          今後、この案内を表示しない
+        </button>
       </div>
 
       <style jsx>{`
